@@ -32,6 +32,9 @@ app.use(
 
             if (
                 origin.includes("vercel.app") ||
+                origin.includes("workers.dev") ||
+                origin.includes("pages.dev") ||
+                origin.includes("trycloudflare.com") ||
                 origin.includes("localhost") ||
                 origin.startsWith("file://")
             ) {

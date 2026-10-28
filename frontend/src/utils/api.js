@@ -1,7 +1,20 @@
 import axios from "axios";
 
+const getBaseURL = () => {
+    if (import.meta.env.VITE_BACKEND) {
+        return import.meta.env.VITE_BACKEND;
+    }
+    if (typeof window !== "undefined") {
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+            return "http://localhost:5000";
+        }
+        return "https://pregnant-profits-sunrise-protected.trycloudflare.com";
+    }
+    return "http://localhost:5000";
+};
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_BACKEND,
+    baseURL: getBaseURL(),
     withCredentials: true,
 });
 
