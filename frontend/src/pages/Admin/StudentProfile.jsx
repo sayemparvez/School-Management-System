@@ -228,7 +228,7 @@ const StudentProfile = ({ student, isNew, onClose, onUpdated }) => {
 
                         <Select
                             required
-                            label="Semester/Year"
+                            label="শিক্ষাবর্ষ / টার্ম (Academic Year / Term)"
                             name="semoryear"
                             value={form.semoryear}
                             onChange={handleChange}

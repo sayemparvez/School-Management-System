@@ -36,6 +36,7 @@ const TakeAttendance = () => {
     // Optional second class for combined attendance (e.g. Class 9 Sci + Class 9 Arts)
     const [selectedCourse2, setSelectedCourse2] = useState("");
     const [selectedDate, setSelectedDate] = useState(getTodayString());
+    const [roomNo, setRoomNo] = useState("");
 
     const [markMode, setMarkMode] = useState("present");
     const [checkedStudents, setCheckedStudents] = useState({});
@@ -54,6 +55,7 @@ const TakeAttendance = () => {
         setSelectedSem("1");
         setSelectedCourse2("");
         setSelectedDate(getTodayString());
+        setRoomNo("");
         setCheckedStudents({});
         setExistingDates([]);
         setStudents([]);
@@ -192,6 +194,7 @@ const TakeAttendance = () => {
                     date: selectedDate,
                     courcecode: selectedCourse,
                     semoryear: Number(selectedSem),
+                    room_no: roomNo || null,
                     records
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -414,7 +417,9 @@ const TakeAttendance = () => {
                                 ) : (
                                     semesterOptions.map(s => (
                                         <option key={s} value={s}>
-                                            {s === 1 ? "Half Yearly Exam (অর্ধ-বার্ষিক পরীক্ষা)" : "Final Exam (বার্ষিক পরীক্ষা)"}
+                                            {selectedCourse.toUpperCase().includes("10")
+                                                ? (s === 1 ? "Pre-Test Exam (প্রাক-নির্বাচনী পরীক্ষা)" : "Test Exam (নির্বাচনী পরীক্ষা / টেস্ট)")
+                                                : (s === 1 ? "Half Yearly Exam (অর্ধ-বার্ষিক পরীক্ষা)" : "Final Exam (বার্ষিক পরীক্ষা)")}
                                         </option>
                                     ))
                                 )}
@@ -453,6 +458,22 @@ const TakeAttendance = () => {
                                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             />
                         </div>
+
+                        {/* Room Number for Exam Attendance */}
+                        {attendanceType === "exam" && (
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                    পরীক্ষার কক্ষ নং (Exam Room No)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={roomNo}
+                                    onChange={(e) => setRoomNo(e.target.value)}
+                                    placeholder="যেমন: Room 101, কক্ষ ১০২"
+                                    className="w-full px-4 py-2.5 bg-purple-50/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-semibold"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Mode */}

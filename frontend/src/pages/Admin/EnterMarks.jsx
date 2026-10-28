@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import api from "../../utils/api";
 import ConfirmSaveModal from "../../components/modals/ConfirmSaveModal.jsx";
+import MarksReviewModal from "../../components/modals/MarksReviewModal.jsx";
+import { Eye } from "lucide-react";
 import Toast from "../../components/ui/Toast.jsx";
 import { calculateNCTBGrade, getExamShortName } from "../../utils/academicHelper.js";
 import { GraduationCap, Filter, ListChecks, Save, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
@@ -22,6 +24,7 @@ const EnterMarks = () => {
     const [error, setError] = useState("");
     const [toast, setToast] = useState(null);
     const [showSaveModal, setShowSaveModal] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     /* ================= ACTION: RESET ================= */
     const handleReset = () => {
@@ -96,8 +99,18 @@ const EnterMarks = () => {
         setMarks({});
 
         try {
-            const res = await api.get(`/api/marks/students?course=${selectedCourse}&sem=${selectedSem}`, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await api.get(`/api/marks/students?course=${selectedCourse}&sem=${selectedSem}&subject=${code}`, { headers: { Authorization: `Bearer ${token}` } });
             setStudents(res.data || []);
+            const initialMarks = {};
+            (res.data || []).forEach(student => {
+                initialMarks[student.rollnumber] = {
+                    cq: student.cq_marks !== null && student.cq_marks !== undefined ? String(student.cq_marks) : "",
+                    mcq: student.mcq_marks !== null && student.mcq_marks !== undefined ? String(student.mcq_marks) : "",
+                    practical: student.practicalmarks !== null && student.practicalmarks !== undefined ? String(student.practicalmarks) : "",
+                    theory: student.theorymarks !== null && student.theorymarks !== undefined ? String(student.theorymarks) : ""
+                };
+            });
+            setMarks(initialMarks);
         } catch { setError("Failed to load students."); }
     };
 
@@ -114,24 +127,13 @@ const EnterMarks = () => {
 
     const handleOpenModal = () => {
         if (!subjectDetails) return;
-        for (const student of students) {
+        const entered = students.some(student => {
             const m = marks[student.rollnumber] || {};
-            if (hasCQ && (m.cq ?? "") === "") {
-                setToast({ type: "error", message: `Missing CQ score for ${student.firstname}` });
-                return;
-            }
-            if (hasMCQ && (m.mcq ?? "") === "") {
-                setToast({ type: "error", message: `Missing MCQ score for ${student.firstname}` });
-                return;
-            }
-            if (hasPractical && (m.practical ?? "") === "") {
-                setToast({ type: "error", message: `Missing Practical score for ${student.firstname}` });
-                return;
-            }
-            if (hasLegacyTheory && (m.theory ?? "") === "") {
-                setToast({ type: "error", message: `Missing Theory score for ${student.firstname}` });
-                return;
-            }
+            return (m.cq ?? "") !== "" || (m.mcq ?? "") !== "" || (m.practical ?? "") !== "" || (m.theory ?? "") !== "";
+        });
+        if (!entered) {
+            setToast({ type: "error", message: "কমপক্ষে একজন শিক্ষার্থীর নম্বর এন্ট্রি করুন।" });
+            return;
         }
         setShowSaveModal(true);
     };
@@ -140,10 +142,17 @@ const EnterMarks = () => {
         try {
             const records = students.map(student => {
                 const m = marks[student.rollnumber] || {};
-                const cq = Number(m.cq) || 0;
-                const mcq = Number(m.mcq) || 0;
-                const practical = hasPractical ? (Number(m.practical) || 0) : 0;
-                const theory = hasLegacyTheory ? (Number(m.theory) || 0) : (cq + mcq);
+                const hasCq = (m.cq ?? "") !== "";
+                const hasMcq = (m.mcq ?? "") !== "";
+                const hasPrac = (m.practical ?? "") !== "";
+                const hasTh = (m.theory ?? "") !== "";
+
+                if (!hasCq && !hasMcq && !hasPrac && !hasTh) return null;
+
+                const cq = hasCq ? Number(m.cq) : 0;
+                const mcq = hasMcq ? Number(m.mcq) : 0;
+                const practical = hasPractical ? (hasPrac ? Number(m.practical) : 0) : 0;
+                const theory = hasLegacyTheory ? (hasTh ? Number(m.theory) : 0) : (cq + mcq);
 
                 return {
                     rollnumber: student.rollnumber,
@@ -152,7 +161,13 @@ const EnterMarks = () => {
                     theorymarks: theory,
                     practicalmarks: practical
                 };
-            });
+            }).filter(Boolean);
+
+            if (records.length === 0) {
+                setToast({ type: "error", message: "কমপক্ষে একজন শিক্ষার্থীর নম্বর এন্ট্রি করুন।" });
+                setShowSaveModal(false);
+                return;
+            }
 
             await api.post("/api/marks/save", {
                 course: selectedCourse,

@@ -53,8 +53,8 @@ exports.getResultStatus = async (req, res) => {
 
         // 3. Count total students in this course
         const studentCountRes = await db.query(
-            `SELECT COUNT(*) AS total FROM students WHERE Courcecode = $1 AND semoryear = $2`,
-            [course, sem]
+            `SELECT COUNT(*) AS total FROM students WHERE courcecode = $1`,
+            [course]
         );
         const totalStudents = Number(studentCountRes.rows[0]?.total || 0);
 

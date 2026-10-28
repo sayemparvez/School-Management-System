@@ -67,7 +67,7 @@ exports.getStudents = async (req, res) => {
             ).join(" OR ");
 
             result = await db.query(
-                `SELECT sr_no, rollnumber, firstname, lastname, Courcecode AS courcecode, semoryear
+                `SELECT sr_no, rollnumber, firstname, lastname, Courcecode AS courcecode, semoryear, room_no
                  FROM students s
                  WHERE s.semoryear = $1
                    AND (${conditions})
@@ -77,7 +77,7 @@ exports.getStudents = async (req, res) => {
         } else if (course && sem) {
             // Single course
             result = await db.query(
-                `SELECT sr_no, rollnumber, firstname, lastname, Courcecode AS courcecode, semoryear
+                `SELECT sr_no, rollnumber, firstname, lastname, Courcecode AS courcecode, semoryear, room_no
                  FROM students
                  WHERE Courcecode = $1 AND semoryear = $2
                  ORDER BY rollnumber`,
@@ -94,6 +94,7 @@ exports.getStudents = async (req, res) => {
             lastname: student.lastname,
             courcecode: student.courcecode,
             semoryear: student.semoryear,
+            room_no: student.room_no || null,
             profilepic: getStudentImage(student.rollnumber)
         }));
 
@@ -167,7 +168,7 @@ exports.getAttendanceByDate = async (req, res) => {
 ============================================================ */
 
 exports.saveAttendance = async (req, res) => {
-    let { subjectcode, date, courcecode, semoryear, records } = req.body;
+    let { subjectcode, date, courcecode, semoryear, records, room_no } = req.body;
 
     if (!subjectcode || !date || !Array.isArray(records)) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -223,13 +224,14 @@ exports.saveAttendance = async (req, res) => {
                 date,
                 r.present,
                 studentCourcecode,
-                studentSemoryear
+                studentSemoryear,
+                r.room_no || room_no || null
             ];
         });
 
         if (values.length > 0) {
             const placeholders = values.map((_, index) => {
-                const offset = index * 6;
+                const offset = index * 7;
                 return `(
                     $${offset + 1},
                     $${offset + 2},
@@ -245,11 +247,11 @@ exports.saveAttendance = async (req, res) => {
             await db.query(
                 `
                     INSERT INTO attendance
-                    (student_id, subjectcode, attendance_date, present, courcecode, semoryear)
+                    (student_id, subjectcode, attendance_date, present, courcecode, semoryear, room_no)
                     VALUES ${placeholders}
                     ON CONFLICT
                     (student_id, subjectcode, attendance_date, courcecode, semoryear)
-                    DO UPDATE SET present = EXCLUDED.present
+                    DO UPDATE SET present = EXCLUDED.present, room_no = COALESCE(EXCLUDED.room_no, attendance.room_no)
                 `,
                 flattenedValues
             );

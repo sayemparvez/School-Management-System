@@ -113,7 +113,7 @@ const Subjects = () => {
         e.preventDefault();
 
         if (!selectedCourse || !selectedSem) {
-            setError("Select course and semester first.");
+            setError("শ্রেণি এবং পরীক্ষা / টার্ম নির্বাচন করুন (Select Class and Exam Term).");
             return;
         }
 
@@ -227,42 +227,60 @@ const Subjects = () => {
                 <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-4 sm:p-6 transition-all">
                     <div className="flex items-center gap-2 mb-4">
                         <Filter className="w-4 h-4 text-blue-500" />
-                        <h2 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">Hierarchy Selection</h2>
+                        <h2 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                            শ্রেণি ও পরীক্ষা নির্বাচন (Class & Exam Term)
+                        </h2>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select
-                            value={selectedCourse}
-                            onChange={(e) => {
-                                setSelectedCourse(e.target.value);
-                                setSelectedSem("");
-                                resetForm();
-                            }}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
-                        >
-                            <option value="">Select Course...</option>
-                            {courses.map((course) => (
-                                <option key={course.id} value={course.course_code}>
-                                    {course.course_name}
-                                </option>
-                            ))}
-                        </select>
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                শ্রেণি (Class)
+                            </label>
+                            <select
+                                value={selectedCourse}
+                                onChange={(e) => {
+                                    setSelectedCourse(e.target.value);
+                                    setSelectedSem("");
+                                    resetForm();
+                                }}
+                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer font-medium"
+                            >
+                                <option value="">শ্রেণি নির্বাচন করুন (Select Class)...</option>
+                                {courses.map((course) => (
+                                    <option key={course.id} value={course.course_code}>
+                                        {course.course_name} ({course.course_code})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        <select
-                            value={selectedSem}
-                            onChange={(e) => setSelectedSem(e.target.value)}
-                            disabled={!selectedCourse}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 disabled:opacity-40 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
-                        >
-                            <option value="">Select Semester/Year...</option>
-                            {selectedCourseData &&
-                                Array.from({ length: selectedCourseData.total_semesters }, (_, i) => i + 1)
-                                    .map((sem) => (
-                                        <option key={sem} value={sem}>
-                                            {selectedCourseData.sem_or_year === "year" ? `Year ${sem}` : `Semester ${sem}`}
-                                        </option>
-                                    ))}
-                        </select>
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                পরীক্ষা / টার্ম (Exam Term)
+                            </label>
+                            <select
+                                value={selectedSem}
+                                onChange={(e) => setSelectedSem(e.target.value)}
+                                disabled={!selectedCourse}
+                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 disabled:opacity-40 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer font-medium"
+                            >
+                                <option value="">পরীক্ষা / টার্ম নির্বাচন করুন (Select Exam Term)...</option>
+                                {selectedCourseData &&
+                                    Array.from({ length: selectedCourseData.total_semesters || 2 }, (_, i) => i + 1)
+                                        .map((sem) => {
+                                            const isClass10 = String(selectedCourseData.course_code || "").includes("10");
+                                            const label = isClass10
+                                                ? (sem === 1 ? "১ম: প্রাক-নির্বাচনী পরীক্ষা (Pre-Test Exam)" : "২য়: নির্বাচনী পরীক্ষা / টেস্ট (Test Exam)")
+                                                : (sem === 1 ? "১ম: অর্ধ-বার্ষিক পরীক্ষা (Half-Yearly Exam)" : "২য়: বার্ষিক পরীক্ষা (Annual / Final Exam)");
+                                            return (
+                                                <option key={sem} value={sem}>
+                                                    {label}
+                                                </option>
+                                            );
+                                        })}
+                            </select>
+                        </div>
                     </div>
                 </section>
 

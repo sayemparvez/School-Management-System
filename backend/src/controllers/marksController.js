@@ -43,17 +43,43 @@ const getAdminLogo = () => {
 
 exports.getStudentsForMarks = async (req, res) => {
     try {
+        const { course, sem, subject } = req.query;
 
-        const { course, sem } = req.query;
+        let query;
+        let params;
 
-        const result = await db.query(
-            `SELECT rollnumber, firstname, lastname
-             FROM students
-             WHERE Courcecode = $1 AND semoryear = $2
-             ORDER BY rollnumber`,
-            [course, sem]
-        );
+        if (subject) {
+            query = `
+                SELECT 
+                    s.rollnumber, 
+                    s.firstname, 
+                    s.lastname,
+                    m.cq_marks,
+                    m.mcq_marks,
+                    m.theorymarks,
+                    m.practicalmarks,
+                    CASE WHEN m.rollnumber IS NOT NULL THEN true ELSE false END AS is_saved
+                FROM students s
+                LEFT JOIN marks m 
+                    ON s.rollnumber = m.rollnumber 
+                    AND m.courcecode = $1 
+                    AND m.semoryear = $2 
+                    AND m.subjectcode = $3
+                WHERE s.courcecode = $1
+                ORDER BY s.rollnumber
+            `;
+            params = [course, sem, subject];
+        } else {
+            query = `
+                SELECT rollnumber, firstname, lastname
+                FROM students
+                WHERE courcecode = $1
+                ORDER BY rollnumber
+            `;
+            params = [course, sem];
+        }
 
+        const result = await db.query(query, params);
         res.json(result.rows);
 
     } catch (error) {
@@ -530,10 +556,9 @@ exports.getMarksForEdit = async (req, res) => {
                ON sub.subjectcode = $1
                AND sub.courcecode = $2
                AND sub.semoryear = $3
-             WHERE s.Courcecode = $4
-             AND s.semoryear = $5
+             WHERE s.courcecode = $4
              ORDER BY s.rollnumber`,
-            [subject, course, sem, course, sem]
+            [subject, course, sem, course]
         );
 
         res.json(result.rows);
@@ -1055,4 +1080,170 @@ exports.getStudentMarksheet = async (req, res) => {
 
     }
 
+};
+// ============================
+// Get Marks Review (For Teacher & Admin/Head Teacher)
+// ============================
+exports.getMarksReview = async (req, res) => {
+    try {
+        const { course, sem, subject } = req.query;
+
+        if (!course || !sem || !subject) {
+            return res.status(400).json({ message: "Course, exam term, and subject are required" });
+        }
+
+        // 1. Subject Details
+        const subRes = await db.query(
+            `SELECT subjectcode, subjectname, subjecttype, theorymarks, practicalmarks,
+                    COALESCE(cq_max_marks, 0) AS cq_max_marks,
+                    COALESCE(mcq_max_marks, 0) AS mcq_max_marks
+             FROM subject
+             WHERE subjectcode = $1 AND courcecode = $2 AND semoryear = $3`,
+            [subject, course, sem]
+        );
+
+        if (!subRes.rows.length) {
+            return res.status(404).json({ message: "Subject not found" });
+        }
+        const subjectInfo = subRes.rows[0];
+
+        // 2. Evaluator Teacher Info
+        const facRes = await db.query(
+            `SELECT facultyname, position, pdsid, emailid, contactnumber
+             FROM faculties
+             WHERE subject = $1 AND courcecode = $2
+             LIMIT 1`,
+            [subject, course]
+        );
+        const evaluator = facRes.rows.length > 0 ? facRes.rows[0] : null;
+
+        // 3. Students & Marks
+        const marksRes = await db.query(
+            `SELECT 
+                s.rollnumber, 
+                CONCAT(s.firstname, ' ', s.lastname) AS studentname,
+                m.cq_marks,
+                m.mcq_marks,
+                m.theorymarks,
+                m.practicalmarks,
+                CASE WHEN m.rollnumber IS NOT NULL THEN true ELSE false END AS has_marks
+             FROM students s
+             LEFT JOIN marks m 
+                ON s.rollnumber = m.rollnumber 
+                AND m.courcecode = $1 
+                AND m.semoryear = $2 
+                AND m.subjectcode = $3
+             WHERE s.courcecode = $1
+             ORDER BY s.rollnumber`,
+            [course, sem, subject]
+        );
+
+        const students = marksRes.rows;
+        const totalStudents = students.length;
+
+        // Grade calculation helper
+        const maxMarks = (Number(subjectInfo.cq_max_marks || 0) + Number(subjectInfo.mcq_max_marks || 0)) > 0
+            ? (Number(subjectInfo.cq_max_marks || 0) + Number(subjectInfo.mcq_max_marks || 0) + Number(subjectInfo.practicalmarks || 0))
+            : (Number(subjectInfo.theorymarks || 0) + Number(subjectInfo.practicalmarks || 0)) || 100;
+
+        let enteredCount = 0;
+        let highestMark = 0;
+        let lowestMark = 9999;
+        let totalSum = 0;
+
+        const gradeCounts = { "A+": 0, "A": 0, "A-": 0, "B": 0, "C": 0, "D": 0, "F": 0 };
+
+        const studentList = students.map(st => {
+            if (!st.has_marks) {
+                return {
+                    rollnumber: st.rollnumber,
+                    studentname: st.studentname,
+                    has_marks: false,
+                    cq: "-",
+                    mcq: "-",
+                    practical: "-",
+                    total: "-",
+                    grade: "Pending"
+                };
+            }
+
+            enteredCount++;
+            const cq = Number(st.cq_marks) || 0;
+            const mcq = Number(st.mcq_marks) || 0;
+            const prac = Number(st.practicalmarks) || 0;
+            const th = (st.cq_marks !== null || st.mcq_marks !== null) ? (cq + mcq) : (Number(st.theorymarks) || 0);
+            const total = th + prac;
+
+            totalSum += total;
+            if (total > highestMark) highestMark = total;
+            if (total < lowestMark) lowestMark = total;
+
+            const pct = (total / maxMarks) * 100;
+            let grade = "F";
+            if (pct >= 80) grade = "A+";
+            else if (pct >= 70) grade = "A";
+            else if (pct >= 60) grade = "A-";
+            else if (pct >= 50) grade = "B";
+            else if (pct >= 40) grade = "C";
+            else if (pct >= 33) grade = "D";
+
+            gradeCounts[grade] = (gradeCounts[grade] || 0) + 1;
+
+            return {
+                rollnumber: st.rollnumber,
+                studentname: st.studentname,
+                has_marks: true,
+                cq,
+                mcq,
+                practical: prac,
+                total,
+                grade
+            };
+        });
+
+        if (enteredCount === 0) {
+            lowestMark = 0;
+        }
+
+        const averageMark = enteredCount > 0 ? (totalSum / enteredCount).toFixed(1) : "0";
+
+        // 4. Result publication status
+        const resCheck = await db.query(
+            `SELECT isdeclared, declared_by, TO_CHAR(declared_at, 'YYYY-MM-DD HH24:MI') as declared_at
+             FROM result
+             WHERE courcecode = $1 AND semoryear = $2`,
+            [course, sem]
+        );
+        const isPublished = resCheck.rows.length > 0 && Number(resCheck.rows[0].isdeclared) === 1;
+
+        res.json({
+            course,
+            sem: Number(sem),
+            subject: subjectInfo,
+            evaluator: evaluator ? {
+                name: evaluator.facultyname,
+                position: evaluator.position,
+                pdsid: evaluator.pdsid,
+                email: evaluator.emailid,
+                phone: evaluator.contactnumber
+            } : null,
+            totalStudents,
+            enteredCount,
+            pendingCount: totalStudents - enteredCount,
+            isFullyEntered: totalStudents > 0 && enteredCount >= totalStudents,
+            highestMark,
+            lowestMark: lowestMark === 9999 ? 0 : lowestMark,
+            averageMark,
+            maxMarks,
+            gradeCounts,
+            isPublished,
+            declared_by: resCheck.rows[0]?.declared_by || null,
+            declared_at: resCheck.rows[0]?.declared_at || null,
+            students: studentList
+        });
+
+    } catch (error) {
+        console.error("Error in getMarksReview:", error);
+        res.status(500).json({ message: "Failed to generate marks review" });
+    }
 };

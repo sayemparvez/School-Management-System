@@ -74,13 +74,7 @@ const AssignSubjects = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            const filtered = (res.data || []).filter(
-                (f) =>
-                    f.courcecode === "NOT ASSIGNED" ||
-                    f.courcecode === selectedCourse
-            );
-
-            setFaculties(filtered);
+            setFaculties(res.data || []);
         } catch {
             setError("Failed to load faculties.");
         }
@@ -104,8 +98,8 @@ const AssignSubjects = () => {
 
     const handleAssign = async (facultyId) => {
         if (!selectedCourse || !selectedSem || !selectedSubject) {
-            setError("Select course, semester and subject first.");
-            setToast({ type: "error", message: "Select course, semester and subject first." });
+            setError("শ্রেণি, পরীক্ষা এবং বিষয় নির্বাচন করুন (Select Class, Exam & Subject).");
+            setToast({ type: "error", message: "শ্রেণি, পরীক্ষা এবং বিষয় নির্বাচন করুন।" });
             return;
         }
 
@@ -214,7 +208,7 @@ const AssignSubjects = () => {
                             }}
                             className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                         >
-                            <option value="">Select Course...</option>
+                            <option value="">শ্রেণি নির্বাচন করুন (Select Class)...</option>
                             {courses.map((course) => (
                                 <option key={course.id} value={course.course_code}>
                                     {course.course_name}
@@ -231,16 +225,22 @@ const AssignSubjects = () => {
                             disabled={!selectedCourse}
                             className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 disabled:opacity-40 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                         >
-                            <option value="">Select Semester/Year...</option>
+                            <option value="">পরীক্ষা / টার্ম নির্বাচন করুন (Select Exam Term)...</option>
                             {selectedCourseData &&
                                 Array.from(
-                                    { length: selectedCourseData.total_semesters },
+                                    { length: selectedCourseData.total_semesters || 2 },
                                     (_, i) => i + 1
-                                ).map((sem) => (
-                                    <option key={sem} value={sem}>
-                                        {selectedCourseData.sem_or_year === "year" ? `Year ${sem}` : `Semester ${sem}`}
-                                    </option>
-                                ))}
+                                ).map((sem) => {
+                                    const isClass10 = String(selectedCourseData.course_code || "").includes("10");
+                                    const label = isClass10
+                                        ? (sem === 1 ? "১ম: প্রাক-নির্বাচনী পরীক্ষা (Pre-Test Exam)" : "২য়: নির্বাচনী পরীক্ষা / টেস্ট (Test Exam)")
+                                        : (sem === 1 ? "১ম: অর্ধ-বার্ষিক পরীক্ষা (Half-Yearly Exam)" : "২য়: বার্ষিক পরীক্ষা (Annual / Final Exam)");
+                                    return (
+                                        <option key={sem} value={sem}>
+                                            {label}
+                                        </option>
+                                    );
+                                })}
                         </select>
 
                         <select
@@ -249,7 +249,7 @@ const AssignSubjects = () => {
                             disabled={!selectedSem}
                             className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 disabled:opacity-40 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                         >
-                            <option value="">Select Target Subject...</option>
+                            <option value="">বিষয় নির্বাচন করুন (Select Subject)...</option>
                             {subjects.map((sub) => (
                                 <option key={sub.subjectcode} value={sub.subjectcode}>
                                     {sub.subjectname} ({sub.subjectcode})
@@ -345,7 +345,7 @@ const AssignSubjects = () => {
                             <ListChecks className="w-8 h-8 text-blue-500" />
                         </div>
                         <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">Awaiting Configuration</h2>
-                        <p className="text-sm text-slate-500 mt-1 max-w-xs">Select a course and semester to load the faculty matrix.</p>
+                        <p className="text-sm text-slate-500 mt-1 max-w-xs">শ্রেণি ও পরীক্ষা নির্বাচন করে শিক্ষক বণ্টন তালিকা দেখুন।</p>
                     </div>
                 )}
             </main>

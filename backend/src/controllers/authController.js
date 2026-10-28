@@ -17,6 +17,11 @@ const client = new OAuth2Client(
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const identifier = String(email || "").trim();
+
+        if (!identifier || !password) {
+            return res.status(400).json({ message: "ইমেইল/মোবাইল নম্বর ও পাসওয়ার্ড আবশ্যক।" });
+        }
 
         let user = null;
         let role = null;
@@ -25,7 +30,7 @@ exports.login = async (req, res) => {
         // Check admin
         const { rows: adminRows } = await db.query(
             "SELECT * FROM admin WHERE emailid = $1",
-            [email]
+            [identifier]
         );
 
         if (adminRows.length > 0) {
@@ -34,11 +39,15 @@ exports.login = async (req, res) => {
             table = "admin";
         }
 
-        // Check faculties
+        // Check faculties (by email OR mobile number OR pdsid)
         if (!user) {
             const { rows: facultyRows } = await db.query(
-                "SELECT * FROM faculties WHERE emailid = $1",
-                [email]
+                `SELECT * FROM faculties 
+                 WHERE emailid = $1 
+                    OR contactnumber = $1 
+                    OR (pdsid IS NOT NULL AND pdsid = $1)
+                 LIMIT 1`,
+                [identifier]
             );
 
             if (facultyRows.length > 0) {
@@ -48,11 +57,15 @@ exports.login = async (req, res) => {
             }
         }
 
-        // Check students
+        // Check students (by email OR mobile number OR rollnumber)
         if (!user) {
             const { rows: studentRows } = await db.query(
-                "SELECT * FROM students WHERE emailid = $1",
-                [email]
+                `SELECT * FROM students 
+                 WHERE emailid = $1 
+                    OR contactnumber = $1 
+                    OR rollnumber::text = $1
+                 LIMIT 1`,
+                [identifier]
             );
 
             if (studentRows.length > 0) {
@@ -64,44 +77,47 @@ exports.login = async (req, res) => {
 
         // No user found
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ message: "সঠিক ইমেইল/মোবাইল নম্বর বা পাসওয়ার্ড প্রদান করুন।" });
         }
 
         // Check password (bcrypt OR plain text)
         let isMatch = false;
 
-        if (user.password.startsWith("$2")) {
-            // bcrypt hash
+        if (user.password && user.password.startsWith("$2")) {
             isMatch = await bcrypt.compare(password, user.password);
         } else {
-            // plain text fallback
             isMatch = password === user.password;
         }
 
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ message: "পাসওয়ার্ড সঠিক নয়।" });
         }
 
         const token = jwt.sign(
-            { email: user.emailid, role },
+            { 
+                email: user.emailid, 
+                role,
+                name: user.facultyname || user.firstname || "User"
+            },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 
-        await db.query(
-            `
-UPDATE ${table}
-SET activestatus = 1,
-    lastlogin = $1
-WHERE emailid = $2
-    `,
-            [new Date().toISOString(), email]
-        );
-
+       await db.query(
+    `UPDATE ${table} SET activestatus = 1, lastlogin = $1 WHERE emailid = $2`,
+    [new Date().toISOString(), user.emailid]
+);
         res.json({
             message: "Login successful",
             token,
-            role
+            role,
+            user: {
+                name: user.facultyname || `${user.firstname || ""} ${user.lastname || ""}`.trim() || "User",
+                email: user.emailid,
+                position: user.position || null,
+                pdsid: user.pdsid || null,
+                contactnumber: user.contactnumber || null
+            }
         });
 
     } catch (error) {
@@ -110,6 +126,48 @@ WHERE emailid = $2
     }
 };
 
+/* ============================================================
+   FORGOT / RESET PASSWORD (SELF SERVICE)
+============================================================ */
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { identifier, phone, newPassword } = req.body;
+        if (!identifier || !phone || !newPassword) {
+            return res.status(400).json({ 
+                message: "সকল তথ্য প্রদান করুন (ইমেইল/আইডি, মোবাইল নম্বর ও নতুন পাসওয়ার্ড)।" 
+            });
+        }
+
+        const cleanId = String(identifier).trim();
+        const cleanPhone = String(phone).trim();
+
+        const fRes = await db.query(
+            `SELECT sr_no, emailid, contactnumber, facultyname FROM faculties 
+             WHERE (emailid = $1 OR contactnumber = $1 OR (pdsid IS NOT NULL AND pdsid = $1))
+               AND contactnumber = $2 
+             LIMIT 1`,
+            [cleanId, cleanPhone]
+        );
+
+        if (!fRes.rows.length) {
+            return res.status(404).json({ 
+                message: "প্রদত্ত ইমেইল এবং মোবাইল নম্বরের সাথে কোনো শিক্ষক অ্যাকাউন্ট মেলেনি।" 
+            });
+        }
+
+        const teacher = fRes.rows[0];
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.query("UPDATE faculties SET password = $1 WHERE sr_no = $2", [hashedPassword, teacher.sr_no]);
+
+        return res.json({ 
+            message: `সম্মানিত ${teacher.facultyname || "শিক্ষক"}, আপনার পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে। নতুন পাসওয়ার্ড দিয়ে লগইন করুন।` 
+        });
+
+    } catch (err) {
+        console.error("Forgot password error:", err);
+        return res.status(500).json({ message: "পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে।" });
+    }
+};
 
 /*
   Role-Based Logout

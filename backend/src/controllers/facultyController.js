@@ -97,6 +97,7 @@ exports.uploadExcel = multer({
 exports.createFaculty = async (req, res) => {
     const {
         facultyid,
+        pdsid,
         facultyname,
         state,
         city,
@@ -115,25 +116,27 @@ exports.createFaculty = async (req, res) => {
     } = req.body;
 
     // ============================
-    // Mandatory Field Validation
+    // Mandatory Field Validation (facultyid not required in school, PDS ID optional)
     // ============================
 
     if (
-        !facultyid ||
         !facultyname ||
-        !state ||
-        !city ||
         !emailid ||
         !contactnumber ||
         !qualification ||
-        !experience ||
         !birthdate ||
         !gender
     ) {
         return res.status(400).json({
-            message: "All required fields must be filled"
+            message: "শিক্ষকের নাম, ইমেইল, মোবাইল নম্বর, শিক্ষাগত যোগ্যতা, জন্মতারিখ ও লিঙ্গ আবশ্যক।"
         });
     }
+
+    // Auto-generate facultyid if not provided
+    const cleanPdsid = pdsid && pdsid.trim() ? pdsid.trim() : null;
+    const finalFacultyId = facultyid && String(facultyid).trim() 
+        ? String(facultyid).trim() 
+        : (cleanPdsid || ('T-' + Date.now().toString().slice(-6)));
 
     try {
         // ============================
@@ -174,18 +177,18 @@ exports.createFaculty = async (req, res) => {
              (facultyid, facultyname, state, city, emailid, contactnumber,
               qualification, experience, birthdate, gender, profilepic,
               courcecode, semoryear, subject, position,
-              joineddate, password, activestatus)
+              joineddate, password, activestatus, pdsid)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-                     $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+                     $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
             [
-                facultyid,
+                finalFacultyId,
                 facultyname.trim(),
-                state.trim(),
-                city.trim(),
+                (state || "Rangpur").trim(),
+                (city || "Nilphamari").trim(),
                 emailid.trim(),
                 contactnumber.trim(),
                 qualification.trim(),
-                experience.trim(),
+                (experience || "1 Year").trim(),
                 birthdate,
                 gender,
                 profilepic,
@@ -195,7 +198,8 @@ exports.createFaculty = async (req, res) => {
                 finalPosition,
                 finalJoinedDate,
                 hashedPassword,
-                activestatus
+                activestatus,
+                cleanPdsid
             ]
         );
 
@@ -229,6 +233,7 @@ exports.getFaculties = async (req, res) => {
             SELECT
                 f.sr_no,
                 f.facultyid,
+                f.pdsid,
                 f.facultyname,
                 f.state,
                 f.city,
@@ -252,7 +257,19 @@ exports.getFaculties = async (req, res) => {
                                ON f.courcecode = c.course_code
                      LEFT JOIN subject s
                                ON f.subject = s.subjectcode
-            ORDER BY f.sr_no DESC
+            ORDER BY 
+                CASE 
+                    WHEN f.position ILIKE '%ভারপ্রাপ্ত%' THEN 2
+                    WHEN f.position ILIKE '%headmaster%' OR f.position ILIKE '%প্রধান শিক্ষক%' THEN 1
+                    WHEN f.position ILIKE '%assistant head%' OR f.position ILIKE '%সহকারী প্রধান%' THEN 3
+                    WHEN f.position ILIKE '%senior%' OR f.position ILIKE '%সিনিয়র%' THEN 4
+                    WHEN f.position ILIKE '%assistant teacher%' OR f.position ILIKE '%সহকারী শিক্ষক%' THEN 5
+                    WHEN f.position ILIKE '%guest%' OR f.position ILIKE '%অতিথি%' THEN 6
+                    WHEN f.position ILIKE '%part%' OR f.position ILIKE '%খণ্ডকালীন%' THEN 7
+                    ELSE 8
+                END ASC,
+                f.joineddate ASC NULLS LAST,
+                f.facultyname ASC
         `);
 
         res.json(result.rows);
@@ -1424,5 +1441,30 @@ exports.getAssignedSubjects = async (req, res) => {
         return res.status(500).json({
             message: "Error fetching assigned subjects"
         });
+    }
+};
+
+// ============================
+// Admin Reset Teacher Password
+// ============================
+exports.resetFacultyPasswordByAdmin = async (req, res) => {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+    try {
+        const facRes = await db.query(
+            "SELECT sr_no, birthdate, contactnumber, facultyname FROM faculties WHERE sr_no = $1", 
+            [id]
+        );
+        if (!facRes.rows.length) {
+            return res.status(404).json({ message: "শিক্ষক খুঁজে পাওয়া যায়নি।" });
+        }
+        const t = facRes.rows[0];
+        const passToSet = newPassword || (t.birthdate ? new Date(t.birthdate).toISOString().slice(0, 10) : "123456");
+        const hashed = await bcrypt.hash(passToSet, 10);
+        await db.query("UPDATE faculties SET password = $1 WHERE sr_no = $2", [hashed, id]);
+        res.json({ message: `${t.facultyname}-এর পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে (নতুন পাসওয়ার্ড: ${passToSet})।` });
+    } catch (err) {
+        console.error("Reset password error:", err);
+        res.status(500).json({ message: "পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে।" });
     }
 };

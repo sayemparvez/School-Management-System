@@ -22,47 +22,46 @@ exports.createSubject = async (req, res) => {
         semoryear,
         subjecttype,
         theorymarks,
-        practicalmarks
+        practicalmarks,
+        applyToBothTerms = true
     } = req.body;
 
     if (
         !subjectcode ||
         !subjectname ||
         !courcecode ||
-        !semoryear ||
         !subjecttype ||
         theorymarks === undefined ||
         practicalmarks === undefined
     ) {
-        return res.status(400).json({ message: "All fields are required" });
+        return res.status(400).json({ message: "সকল আবশ্যক তথ্য প্রদান করুন।" });
     }
 
+    const code = subjectcode.trim().toUpperCase();
+    const name = subjectname.trim();
+    const sem = semoryear ? Number(semoryear) : 1;
+
     try {
-        await db.query(
-            `INSERT INTO subject
-             (subjectcode, subjectname, courcecode, semoryear, subjecttype, theorymarks, practicalmarks)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [
-                subjectcode.trim().toUpperCase(),
-                subjectname.trim(),
-                courcecode,
-                semoryear,
-                subjecttype,
-                theorymarks,
-                practicalmarks
-            ]
-        );
+        const termsToInsert = (applyToBothTerms !== false) ? [1, 2] : [sem];
 
-        res.status(201).json({ message: "Subject created successfully" });
-
-    } catch (error) {
-
-        if (error.code === "23505") {
-            return res.status(400).json({
-                message: "Subject code already exists"
-            });
+        for (const t of termsToInsert) {
+            await db.query(
+                `INSERT INTO subject
+                 (subjectcode, subjectname, courcecode, semoryear, subjecttype, theorymarks, practicalmarks)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)
+                 ON CONFLICT (subjectcode, courcecode, semoryear)
+                 DO UPDATE SET
+                    subjectname = EXCLUDED.subjectname,
+                    subjecttype = EXCLUDED.subjecttype,
+                    theorymarks = EXCLUDED.theorymarks,
+                    practicalmarks = EXCLUDED.practicalmarks`,
+                [code, name, courcecode, t, subjecttype, theorymarks, practicalmarks]
+            );
         }
 
+        res.status(201).json({ message: "বিষয় সফলভাবে যুক্ত করা হয়েছে (উভয় পরীক্ষার জন্য সংরক্ষিত)!" });
+
+    } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error creating subject" });
     }

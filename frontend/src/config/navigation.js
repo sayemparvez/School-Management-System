@@ -6,7 +6,8 @@ import {
     GraduationCap,
     BarChart3,
     User,
-    Award
+    Award,
+    Banknote
 } from "lucide-react";
 
 export const adminNavigation = [
@@ -22,6 +23,7 @@ export const adminNavigation = [
             { name: "Classes", path: "/admin/courses" },
             { name: "Subjects", path: "/admin/subjects" },
             { name: "Assign Subjects", path: "/admin/assign-subjects" },
+            { name: "Class Teachers", path: "/admin/class-teachers" },
         ],
     },
     {
@@ -29,6 +31,7 @@ export const adminNavigation = [
         icon: Users,
         children: [
             { name: "Students", path: "/admin/students" },
+            { name: "Ex-Students (প্রাক্তন শিক্ষার্থী)", path: "/admin/ex-students" },
             { name: "Promote Students", path: "/admin/promote-students" },
             { name: "Teachers", path: "/admin/faculties" },
         ],
@@ -51,11 +54,22 @@ export const adminNavigation = [
         ],
     },
     {
+        name: "Fees (ফি ব্যবস্থাপনা)",
+        icon: Banknote,
+        children: [
+            { name: "Fee Collection (ফি সংগ্রহ)", path: "/admin/fee-collection" },
+            { name: "Fee Structure (ফি কাঠামো)", path: "/admin/fee-structure" },
+            { name: "Class Teachers (শ্রেণি শিক্ষক)", path: "/admin/class-teachers" },
+            { name: "Fee Report (ফি রিপোর্ট)", path: "/admin/fee-report" },
+        ],
+    },
+    {
         name: "Reports",
         icon: BarChart3,
         children: [
             { name: "Attendance Report", path: "/admin/attendance-report" },
             { name: "Marks Report", path: "/admin/marks-report" },
+            { name: "Fee Report", path: "/admin/fee-report" },
             { name: "Print Marksheet", path: "/admin/print-marksheet" },
         ],
     },
@@ -91,11 +105,20 @@ export const facultyNavigation = [
         ],
     },
     {
+        name: "Fees (ফি সংগ্রহ)",
+        icon: Banknote,
+        children: [
+            { name: "Fee Collection (ফি আদায়)", path: "/faculty/fee-collection" },
+            { name: "Fee Report (ফি রিপোর্ট)", path: "/faculty/fee-report" },
+        ],
+    },
+    {
         name: "Reports",
         icon: BarChart3,
         children: [
             { name: "Attendance Report", path: "/faculty/attendance-report" },
             { name: "Marks Report", path: "/faculty/marks-report" },
+            { name: "Fee Report", path: "/faculty/fee-report" },
         ],
     },
     {
@@ -122,6 +145,11 @@ export const studentNavigation = [
         name: "Marksheet",
         icon: GraduationCap,
         path: "/student/marksheet",
+    },
+    {
+        name: "My Fees (আমার ফি)",
+        icon: Banknote,
+        path: "/student/fees",
     },
     {
         name: "Account",

@@ -91,4 +91,10 @@ router.delete(
     facultyController.deleteFaculty
 );
 
+router.post(
+    "/:id/reset-password",
+    authMiddleware,
+    facultyController.resetFacultyPasswordByAdmin
+);
+
 module.exports = router;

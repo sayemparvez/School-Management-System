@@ -30,6 +30,12 @@ export default function FacultyTakeAttendance() {
   // For Class 9 and 10: combined Science and Arts attendance in 1st period
   const [combineGroups, setCombineGroups] = useState(true);
 
+  // Exam Attendance Room & Multi-Class in same room
+  const [roomNo, setRoomNo] = useState("");
+  const [examTerm, setExamTerm] = useState("1");
+  const [allCourses, setAllCourses] = useState([]);
+  const [examCourse2, setExamCourse2] = useState("");
+
   const [markMode, setMarkMode] = useState("present");
   const [checkedStudents, setCheckedStudents] = useState({});
 
@@ -76,8 +82,21 @@ export default function FacultyTakeAttendance() {
     if (token) fetchAssignedClass();
   }, [token]);
 
-  const selectedCourse = assignedClass?.courcecode || "";
-  const selectedSem = assignedClass?.semoryear || "1";
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await api.get("/api/courses", { headers: { Authorization: `Bearer ${token}` } });
+        setAllCourses(res.data || []);
+      } catch (err) {
+        console.error("Courses fetch error:", err);
+      }
+    };
+    if (token) fetchCourses();
+  }, [token]);
+
+  const [customCourse, setCustomCourse] = useState("");
+  const selectedCourse = customCourse || assignedClass?.courcecode || (allCourses[0]?.course_code || "");
+  const selectedSem = attendanceType === "class" ? (assignedClass?.semoryear || "1") : examTerm;
   const activeSubjectCode = attendanceType === "class" ? DAILY_1ST : `EXAM_TERM_${selectedSem}`;
 
   const isClass9 = selectedCourse.toUpperCase().includes("CLASS-9");
@@ -87,12 +106,19 @@ export default function FacultyTakeAttendance() {
   // Compute courses to query
   const effectiveCourses = useMemo(() => {
     if (!selectedCourse) return "";
-    if (attendanceType === "class" && combineGroups) {
-      if (isClass9) return "CLASS-9-SCI,CLASS-9-ARTS";
-      if (isClass10) return "CLASS-10-SCI,CLASS-10-ARTS";
+    if (attendanceType === "class") {
+      if (combineGroups) {
+        if (isClass9) return "CLASS-9-SCI,CLASS-9-ARTS";
+        if (isClass10) return "CLASS-10-SCI,CLASS-10-ARTS";
+      }
+      return selectedCourse;
+    }
+    // Exam Attendance: if second class in same room is selected
+    if (attendanceType === "exam" && examCourse2 && examCourse2 !== selectedCourse) {
+      return `${selectedCourse},${examCourse2}`;
     }
     return selectedCourse;
-  }, [selectedCourse, attendanceType, combineGroups, isClass9, isClass10]);
+  }, [selectedCourse, attendanceType, combineGroups, isClass9, isClass10, examCourse2]);
 
   const isMultiClass = effectiveCourses.includes(",");
 
@@ -163,7 +189,7 @@ export default function FacultyTakeAttendance() {
 
   const saveAttendance = async () => {
     if (!selectedCourse || !selectedSem) {
-      setError("No class assigned to your account.");
+      setError("শ্রেণি নির্বাচন করুন।");
       return;
     }
     if (isTodayAlreadyTaken) {
@@ -188,6 +214,7 @@ export default function FacultyTakeAttendance() {
           date: todayDate,
           courcecode: effectiveCourses,
           semoryear: Number(selectedSem),
+          room_no: roomNo || null,
           records,
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -363,27 +390,62 @@ export default function FacultyTakeAttendance() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">
-                  Assigned Class (শ্রেণি)
-                </label>
-                <div className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                  <span>{selectedCourse}</span>
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">
+                    শ্রেণি (যে কোনো শ্রেণির হাজিরা নিতে পারেন)
+                  </label>
                   {isMultiClass && (
                     <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md flex items-center gap-1">
                       <Users className="w-3 h-3" /> যৌথ হাজিরা
                     </span>
                   )}
                 </div>
+                <select
+                  value={selectedCourse}
+                  onChange={(e) => setCustomCourse(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
+                >
+                  {allCourses.map((c) => (
+                    <option key={c.course_code} value={c.course_code}>
+                      {c.course_name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">
-                  Attendance Type & Term
-                </label>
-                <div className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {attendanceType === "class" ? "নিয়মিত ক্লাস হাজিরা (১ম পিরিয়ড)" : `পরীক্ষার হাজিরা (Term ${selectedSem})`}
+              {attendanceType === "class" ? (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">
+                    Attendance Type & Term
+                  </label>
+                  <div className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    নিয়মিত ক্লাস হাজিরা (১ম পিরিয়ড)
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">
+                    পরীক্ষার ধরন (Exam Term)
+                  </label>
+                  <select
+                    value={examTerm}
+                    onChange={(e) => setExamTerm(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold text-purple-700 dark:text-purple-300 outline-none focus:ring-2 focus:ring-purple-500/20 cursor-pointer"
+                  >
+                    {isClass10 ? (
+                      <>
+                        <option value="1">Pre-Test Exam (প্রাক-নির্বাচনী পরীক্ষা)</option>
+                        <option value="2">Test Exam (নির্বাচনী পরীক্ষা / টেস্ট)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="1">Half Yearly Exam (অর্ধ-বার্ষিক পরীক্ষা)</option>
+                        <option value="2">Final Exam (বার্ষিক পরীক্ষা)</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">
@@ -394,6 +456,42 @@ export default function FacultyTakeAttendance() {
                 </div>
               </div>
             </div>
+
+            {/* Exam Hall Room No and Multi-Class in same room */}
+            {attendanceType === "exam" && (
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 rounded-xl">
+                <div>
+                  <label className="block text-[11px] font-bold text-purple-900 dark:text-purple-300 mb-1">
+                    পরীক্ষার কক্ষ নং (Exam Room No)
+                  </label>
+                  <input
+                    type="text"
+                    value={roomNo}
+                    onChange={(e) => setRoomNo(e.target.value)}
+                    placeholder="যেমন: Room 101, কক্ষ ১০২"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-purple-500/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-purple-900 dark:text-purple-300 mb-1">
+                    একই কক্ষে অন্য শ্রেণি (Second Class in Room)
+                  </label>
+                  <select
+                    value={examCourse2}
+                    onChange={(e) => setExamCourse2(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-purple-500/20 cursor-pointer"
+                  >
+                    <option value="">— শুধু নিজের নির্ধারিত শ্রেণি —</option>
+                    {allCourses.filter(c => c.course_code !== selectedCourse).map(c => (
+                      <option key={c.course_code} value={c.course_code}>
+                        {c.course_name} ({c.course_code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             {/* Attendance Mode */}
             <div className="mt-4 max-w-xs space-y-1">

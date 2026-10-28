@@ -3,13 +3,15 @@ import api from "../../utils/api";
 import ConfirmDeleteModal from "../../components/modals/ConfirmDeleteModal.jsx";
 import Toast from "../../components/ui/Toast.jsx";
 import {
-    Library,
+    GraduationCap,
     PlusCircle,
     Edit2,
     Trash2,
     X,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
+    Calendar,
+    BookOpen
 } from "lucide-react";
 
 const Courses = () => {
@@ -22,8 +24,9 @@ const Courses = () => {
     const [form, setForm] = useState({
         course_code: "",
         course_name: "",
-        sem_or_year: "sem",
-        total_semesters: ""
+        academic_year: "2026",
+        total_semesters: "2",
+        sem_or_year: "sem"
     });
 
     const [editingId, setEditingId] = useState(null);
@@ -42,7 +45,7 @@ const Courses = () => {
             setError("");
         } catch (err) {
             console.error(err);
-            setError("Failed to load courses from the server.");
+            setError("Failed to load classes from the server.");
         } finally {
             setLoading(false);
         }
@@ -60,7 +63,7 @@ const Courses = () => {
         e.preventDefault();
 
         if (Number(form.total_semesters) <= 0) {
-            setError("Total semesters/years must be greater than 0.");
+            setError("Total exams/terms must be greater than 0.");
             return;
         }
 
@@ -68,19 +71,19 @@ const Courses = () => {
             setLoading(true);
             if (editingId) {
                 await api.put(`/api/courses/${editingId}`, form, { headers: { Authorization: `Bearer ${token}` } });
-                setToast({ type: "success", message: "Course updated successfully!" });
+                setToast({ type: "success", message: "শ্রেণি সফলভাবে আপডেট হয়েছে!" });
             } else {
                 await api.post("/api/courses", form, { headers: { Authorization: `Bearer ${token}` } });
-                setToast({ type: "success", message: "Course added successfully!" });
+                setToast({ type: "success", message: "নতুন শ্রেণি সফলভাবে যুক্ত হয়েছে!" });
             }
 
-            setForm({ course_code: "", course_name: "", sem_or_year: "sem", total_semesters: "" });
+            setForm({ course_code: "", course_name: "", academic_year: "2026", total_semesters: "2", sem_or_year: "sem" });
             setEditingId(null);
             setError("");
             fetchCourses();
         } catch (err) {
             console.error(err);
-            const errorMessage = err.response?.data?.message || "Operation failed. Please verify data.";
+            const errorMessage = err.response?.data?.message || "অপারেশন ব্যর্থ হয়েছে। তথ্য যাচাই করুন।";
             setError(errorMessage);
             setToast({ type: "error", message: errorMessage });
         } finally {
@@ -92,8 +95,9 @@ const Courses = () => {
         setForm({
             course_code: course.course_code,
             course_name: course.course_name,
-            sem_or_year: course.sem_or_year,
-            total_semesters: course.total_semesters
+            academic_year: course.academic_year || "2026",
+            total_semesters: course.total_semesters || "2",
+            sem_or_year: "sem"
         });
         setEditingId(course.id);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -104,13 +108,13 @@ const Courses = () => {
         try {
             setLoading(true);
             await api.delete(`/api/courses/${courseToDelete}`, { headers: { Authorization: `Bearer ${token}` } });
-            setToast({ type: "success", message: "Course deleted successfully." });
+            setToast({ type: "success", message: "শ্রেণি সফলভাবে মুছে ফেলা হয়েছে।" });
             fetchCourses();
             setError("");
         } catch (err) {
             console.error(err);
-            setError("Dependency conflict: Failed to delete course.");
-            setToast({ type: "error", message: "Failed to delete course." });
+            setError("এই শ্রেণির সাথে অন্যান্য রেকর্ড যুক্ত থাকায় মুছে ফেলা যাচ্ছে না।");
+            setToast({ type: "error", message: "শ্রেণি মুছতে ব্যর্থ হয়েছে।" });
         } finally {
             setLoading(false);
             setShowDeleteModal(false);
@@ -121,16 +125,18 @@ const Courses = () => {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-12">
 
-            {/* PLATFORM HEADER - GLASSMORPHISM */}
+            {/* PLATFORM HEADER */}
             <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-600 text-white rounded-lg shadow-md shadow-blue-500/20">
-                            <Library className="w-5 h-5" />
+                            <GraduationCap className="w-5 h-5" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">Course Management</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">Academic Configuration</p>
+                            <h1 className="text-lg font-bold tracking-tight leading-tight">শ্রেণি ও শিক্ষাবর্ষ ব্যবস্থাপনা (Class Management)</h1>
+                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
+                                Academic Year & Class Configuration • ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -151,52 +157,100 @@ const Courses = () => {
                     <div className="flex items-center gap-2 mb-6">
                         {editingId ? <Edit2 className="w-4 h-4 text-blue-500" /> : <PlusCircle className="w-4 h-4 text-blue-500" />}
                         <h2 className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                            {editingId ? "Edit Course" : "Add New Course"}
+                            {editingId ? "শ্রেণি সম্পাদন (Edit Class)" : "নতুন শ্রেণি যুক্ত করুন (Add New Class)"}
                         </h2>
                     </div>
 
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <InputField name="course_code" value={form.course_code} onChange={handleChange} placeholder="Course Code" />
-                        <InputField name="course_name" value={form.course_name} onChange={handleChange} placeholder="Course Name" />
-
-                        <div className="w-full">
-                            <select name="sem_or_year" value={form.sem_or_year} onChange={handleChange}
-                                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
-                                <option value="sem">Semester</option>
-                                <option value="year">Year</option>
-                            </select>
+                        {/* Class Code */}
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                শ্রেণি কোড (Class Code)
+                            </label>
+                            <InputField 
+                                name="course_code" 
+                                value={form.course_code} 
+                                onChange={handleChange} 
+                                placeholder="যেমন: CLASS-9-SCI, CLASS-6" 
+                            />
                         </div>
 
-                        <InputField type="number" name="total_semesters" value={form.total_semesters} onChange={handleChange} placeholder="Total" min="1" />
+                        {/* Class Name */}
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                শ্রেণির নাম (Class Name)
+                            </label>
+                            <InputField 
+                                name="course_name" 
+                                value={form.course_name} 
+                                onChange={handleChange} 
+                                placeholder="যেমন: ৯ম শ্রেণি - বিজ্ঞান" 
+                            />
+                        </div>
+
+                        {/* Academic Year (Replaces Semester/Year) */}
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                শিক্ষাবর্ষ (Academic Year)
+                            </label>
+                            <div className="relative">
+                                <select 
+                                    name="academic_year" 
+                                    value={form.academic_year} 
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
+                                >
+                                    <option value="2026">শিক্ষাবর্ষ ২০২৬ (2026)</option>
+                                    <option value="2025">শিক্ষাবর্ষ ২০২৫ (2025)</option>
+                                    <option value="2027">শিক্ষাবর্ষ ২০২৭ (2027)</option>
+                                    <option value="2028">শিক্ষাবর্ষ ২০২৮ (2028)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Total Exams/Terms */}
+                        <div>
+                            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                পরীক্ষার সংখ্যা (Total Exams)
+                            </label>
+                            <InputField 
+                                type="number" 
+                                name="total_semesters" 
+                                value={form.total_semesters} 
+                                onChange={handleChange} 
+                                placeholder="২টি পরীক্ষা (অর্ধ-বার্ষিক ও বার্ষিক)" 
+                                min="1" 
+                            />
+                        </div>
 
                         {/* ACTION BUTTONS */}
                         <div className="md:col-span-4 flex flex-col sm:flex-row sm:justify-end gap-3 mt-2 border-t border-slate-100 dark:border-slate-800/60 pt-4">
                             {editingId && (
-                                <button type="button" onClick={() => { setEditingId(null); setForm({ course_code: "", course_name: "", sem_or_year: "sem", total_semesters: "" }); }}
+                                <button type="button" onClick={() => { setEditingId(null); setForm({ course_code: "", course_name: "", academic_year: "2026", total_semesters: "2", sem_or_year: "sem" }); }}
                                         className="w-full sm:w-auto px-5 py-2.5 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95">
-                                    <X className="w-4 h-4" /> Cancel
+                                    <X className="w-4 h-4" /> বাতিল (Cancel)
                                 </button>
                             )}
                             <button type="submit" disabled={loading}
                                     className="w-full sm:w-auto px-6 py-2.5 flex items-center justify-center gap-2 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 active:scale-95 disabled:opacity-70 disabled:active:scale-100">
                                 {editingId ? <CheckCircle2 className="w-4 h-4" /> : <PlusCircle className="w-4 h-4" />}
-                                {editingId ? "Update Course" : "Add Course"}
+                                {editingId ? "শ্রেণি আপডেট করুন" : "শ্রেণি যুক্ত করুন (Add Class)"}
                             </button>
                         </div>
                     </form>
                 </section>
 
-                {/* DATA TABLE CARD - ZERO HORIZONTAL SCROLL ON MOBILE */}
+                {/* DATA TABLE CARD */}
                 <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50">
                         <table className="w-full table-fixed">
                             <thead>
                             <tr>
-                                <th className="w-[30%] sm:w-[15%] px-4 sm:px-6 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Code</th>
-                                <th className="w-[45%] sm:w-[35%] px-2 sm:px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Course Name</th>
-                                <th className="hidden sm:table-cell sm:w-[15%] px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
-                                <th className="hidden sm:table-cell sm:w-[15%] px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Total</th>
-                                <th className="w-[25%] sm:w-[20%] px-4 sm:px-6 py-3.5 text-right sm:text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                                <th className="w-[30%] sm:w-[20%] px-4 sm:px-6 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">শ্রেণি কোড (Code)</th>
+                                <th className="w-[45%] sm:w-[35%] px-2 sm:px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">শ্রেণির নাম (Class Name)</th>
+                                <th className="hidden sm:table-cell sm:w-[15%] px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">শিক্ষাবর্ষ</th>
+                                <th className="hidden sm:table-cell sm:w-[15%] px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">পরীক্ষার সংখ্যা</th>
+                                <th className="w-[25%] sm:w-[15%] px-4 sm:px-6 py-3.5 text-right sm:text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
                             </tr>
                             </thead>
                         </table>
@@ -207,33 +261,37 @@ const Courses = () => {
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                             {courses.length > 0 ? courses.map((course, idx) => (
                                 <tr key={course.id} className={`${idx % 2 === 0 ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-slate-800/20'} hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-colors`}>
-                                    <td className="w-[30%] sm:w-[15%] px-4 sm:px-6 py-4">
-                                        <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{course.course_code}</div>
+                                    <td className="w-[30%] sm:w-[20%] px-4 sm:px-6 py-4">
+                                        <div className="text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-slate-100 truncate">{course.course_code}</div>
                                     </td>
                                     <td className="w-[45%] sm:w-[35%] px-2 sm:px-4 py-4">
-                                        <div className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate" title={course.course_name}>{course.course_name}</div>
+                                        <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 truncate" title={course.course_name}>{course.course_name}</div>
                                     </td>
                                     <td className="hidden sm:table-cell sm:w-[15%] px-4 py-4 text-center">
-                                            <span className="inline-flex items-center px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-600 dark:text-slate-400 capitalize tracking-wider">
-                                                {course.sem_or_year}
-                                            </span>
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold tracking-wide">
+                                            <Calendar className="w-3 h-3" />
+                                            {course.academic_year || "2026"}
+                                        </span>
                                     </td>
                                     <td className="hidden sm:table-cell sm:w-[15%] px-4 py-4 text-center">
-                                        <div className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">{course.total_semesters}</div>
+                                        <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                            <BookOpen className="w-3 h-3 text-slate-400" />
+                                            {course.total_semesters}টি পরীক্ষা
+                                        </span>
                                     </td>
-                                    <td className="w-[25%] sm:w-[20%] px-4 sm:px-6 py-3 text-right sm:text-center">
+                                    <td className="w-[25%] sm:w-[15%] px-4 sm:px-6 py-3 text-right sm:text-center">
                                         <div className="flex items-center justify-end sm:justify-center gap-1 sm:gap-2">
                                             <button onClick={() => handleEdit(course)}
                                                     className="p-2 sm:px-3 sm:py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-lg transition-colors flex items-center justify-center"
-                                                    title="Edit Course">
+                                                    title="সম্পাদন করুন">
                                                 <Edit2 className="w-4 h-4" />
-                                                <span className="hidden xl:inline text-xs font-bold ml-2">Edit</span>
+                                                <span className="hidden xl:inline text-xs font-bold ml-1.5">Edit</span>
                                             </button>
                                             <button onClick={() => { setCourseToDelete(course.id); setShowDeleteModal(true); }}
                                                     className="p-2 sm:px-3 sm:py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-center"
-                                                    title="Delete Course">
+                                                    title="মুছে ফেলুন">
                                                 <Trash2 className="w-4 h-4" />
-                                                <span className="hidden xl:inline text-xs font-bold ml-2">Delete</span>
+                                                <span className="hidden xl:inline text-xs font-bold ml-1.5">Delete</span>
                                             </button>
                                         </div>
                                     </td>
@@ -241,7 +299,7 @@ const Courses = () => {
                             )) : (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-sm">
-                                        No courses found.
+                                        কোনো শ্রেণি পাওয়া যায়নি।
                                     </td>
                                 </tr>
                             )}
@@ -253,8 +311,8 @@ const Courses = () => {
 
             <ConfirmDeleteModal
                 show={showDeleteModal}
-                title="Confirm Deletion"
-                message="Are you sure you want to delete this course? This action cannot be undone."
+                title="শ্রেণি মুছে ফেলার নিশ্চিতকরণ"
+                message="আপনি কি নিশ্চিত যে এই শ্রেণিটি মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা যাবে না।"
                 loading={loading}
                 onCancel={() => { setShowDeleteModal(false); setCourseToDelete(null); }}
                 onConfirm={handleDelete}
@@ -270,7 +328,7 @@ const InputField = ({ type = "text", name, value, onChange, placeholder, min }) 
     <div className="w-full">
         <input
             type={type} name={name} value={value} onChange={onChange} required min={min} placeholder={placeholder}
-            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
         />
     </div>
 );

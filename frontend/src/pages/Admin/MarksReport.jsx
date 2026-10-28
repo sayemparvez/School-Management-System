@@ -133,8 +133,14 @@ const MarksReport = () => {
                         </select>
                         <select value={selectedSem} disabled={!selectedCourse} onChange={(e) => { setSelectedSem(e.target.value); setSelectedSubject(""); }}
                                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-sm disabled:opacity-40 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer">
-                            <option value="">Select {semLabel}...</option>
-                            {semesterOptions.map(num => <option key={num} value={num}>{semLabel} {num}</option>)}
+                            <option value="">পরীক্ষা / টার্ম নির্বাচন করুন (Select Exam Term)...</option>
+                            {semesterOptions.map(num => {
+                                const isClass10 = String(selectedCourseObj?.course_code || "").includes("10");
+                                const label = isClass10
+                                    ? (num === 1 ? "১ম: প্রাক-নির্বাচনী পরীক্ষা (Pre-Test Exam)" : "২য়: নির্বাচনী পরীক্ষা / টেস্ট (Test Exam)")
+                                    : (num === 1 ? "১ম: অর্ধ-বার্ষিক পরীক্ষা (Half-Yearly Exam)" : "২য়: বার্ষিক পরীক্ষা (Final Exam)");
+                                return <option key={num} value={num}>{label}</option>;
+                            })}
                         </select>
                         <select value={selectedSubject} disabled={!selectedSem} onChange={(e) => setSelectedSubject(e.target.value)}
                                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-sm disabled:opacity-40 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer">

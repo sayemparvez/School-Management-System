@@ -20,6 +20,7 @@ import Subjects from "./pages/Admin/Subjects";
 import AssignSubjects from "./pages/Admin/AssignSubjects";
 import Faculties from "./pages/Admin/Faculties.jsx";
 import Students from "./pages/Admin/Students.jsx";
+import ExStudents from "./pages/Admin/ExStudents.jsx";
 import PromoteStudents from "./pages/Admin/PromoteStudents.jsx";
 import TakeAttendance from "./pages/Admin/TakeAttendance";
 import EditAttendance from "./pages/Admin/EditAttendance";
@@ -29,6 +30,10 @@ import EditMarks from "./pages/Admin/EditMarks";
 import MarksReport from "./pages/Admin/MarksReport";
 import PrintMarksheet from "./pages/Admin/PrintMarksheet";
 import PublishResult from "./pages/Admin/PublishResult";
+import ClassTeachers from "./pages/Admin/ClassTeachers";
+import FeeStructure from "./pages/Admin/FeeStructure";
+import FeeCollection from "./pages/Admin/FeeCollection";
+import FeeReport from "./pages/Admin/FeeReport";
 
 import FacultyDashboard from "./pages/Faculty/FacultyDashboard";
 import FacultyLayout from "./pages/Faculty/FacultyLayout.jsx";
@@ -44,6 +49,7 @@ import StudentLayout from "./pages/Student/StudentLayout.jsx";
 import StudentProfile from "./pages/Student/StudentProfile";
 import StudentAttendance from "./pages/Student/StudentAttendance";
 import StudentMarksheet from "./pages/Student/StudentMarksheet";
+import StudentFees from "./pages/Student/StudentFees";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -132,6 +138,7 @@ function App() {
                     <Route path="assign-subjects" element={<AssignSubjects />} />
                     <Route path="faculties" element={<Faculties />} />
                     <Route path="students" element={<Students />} />
+                    <Route path="ex-students" element={<ExStudents />} />
                     <Route path="promote-students" element={<PromoteStudents />} />
                     <Route path="take-attendance" element={<TakeAttendance />} />
                     <Route path="edit-attendance" element={<EditAttendance />} />
@@ -141,6 +148,10 @@ function App() {
                     <Route path="publish-result" element={<PublishResult />} />
                     <Route path="marks-report" element={<MarksReport />} />
                     <Route path="print-marksheet" element={<PrintMarksheet />} />
+                    <Route path="class-teachers" element={<ClassTeachers />} />
+                    <Route path="fee-structure" element={<FeeStructure />} />
+                    <Route path="fee-collection" element={<FeeCollection />} />
+                    <Route path="fee-report" element={<FeeReport />} />
                 </Route>
 
                 {/* ===================== Faculty ===================== */}
@@ -159,6 +170,8 @@ function App() {
                     <Route path="publish-result" element={<PublishResult />} />
                     <Route path="attendance-report" element={<FacultyAttendanceReport />} />
                     <Route path="marks-report" element={<FacultyMarksReport />} />
+                    <Route path="fee-collection" element={<FeeCollection />} />
+                    <Route path="fee-report" element={<FeeReport />} />
                     <Route path="profile" element={<FacultyProfile />} />
                 </Route>
 
@@ -174,6 +187,7 @@ function App() {
                     <Route path="dashboard" element={<StudentDashboard />} />
                     <Route path="attendance" element={<StudentAttendance />} />
                     <Route path="marksheet" element={<StudentMarksheet />} />
+                    <Route path="fees" element={<StudentFees />} />
                     <Route path="profile" element={<StudentProfile />} />
                 </Route>
 

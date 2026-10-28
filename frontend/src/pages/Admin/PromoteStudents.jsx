@@ -21,6 +21,7 @@ export default function PromoteStudents() {
     const [allStudents, setAllStudents] = useState([]);
     const [fromCourse, setFromCourse] = useState("");
     const [toCourse, setToCourse] = useState("");
+    const [passingYear, setPassingYear] = useState(new Date().getFullYear().toString());
     const [selectedIds, setSelectedIds] = useState([]);
 
     const [loadingCourses, setLoadingCourses] = useState(false);
@@ -35,9 +36,12 @@ export default function PromoteStudents() {
     const nextClassMap = {
         "CLASS-6": "CLASS-7",
         "CLASS-7": "CLASS-8",
-        "CLASS-8": "CLASS-9-SCI", // default or prompt for stream
+        "CLASS-8": "CLASS-9-SCI",
         "CLASS-9-SCI": "CLASS-10-SCI",
         "CLASS-9-ARTS": "CLASS-10-ARTS",
+        "CLASS-10-SCI": "ALUMNI",
+        "CLASS-10-ARTS": "ALUMNI",
+        "CLASS-10": "ALUMNI",
     };
 
     // Fetch classes
@@ -127,7 +131,8 @@ export default function PromoteStudents() {
                 {
                     fromCourse,
                     toCourse,
-                    studentIds: selectedIds
+                    studentIds: selectedIds,
+                    passingYear: toCourse === "ALUMNI" ? passingYear : undefined
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -162,6 +167,7 @@ export default function PromoteStudents() {
     }, [courses, fromCourse]);
 
     const toCourseName = useMemo(() => {
+        if (toCourse === "ALUMNI") return `প্রাক্তন শিক্ষার্থী আর্কাইভ (এসএসসি ব্যাচ ${passingYear})`;
         return courses.find(c => c.course_code === toCourse)?.course_name || toCourse;
     }, [courses, toCourse]);
 
@@ -258,7 +264,27 @@ export default function PromoteStudents() {
                                 {courses.filter(c => c.course_code !== fromCourse).map(c => (
                                     <option key={c.id} value={c.course_code}>{c.course_name}</option>
                                 ))}
+                                <option value="ALUMNI" className="font-bold text-amber-600 dark:text-amber-400">
+                                    🎓 এসএসসি উত্তীর্ণ / প্রাক্তন শিক্ষার্থী আর্কাইভ (Ex-Students Archive)
+                                </option>
                             </select>
+                            {toCourse === "ALUMNI" && (
+                                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 animate-in fade-in">
+                                    <label className="block text-[11px] font-bold text-amber-600 dark:text-amber-400 mb-1">
+                                        এসএসসি পাসের শিক্ষাবর্ষ (SSC Passing Year):
+                                    </label>
+                                    <select
+                                        value={passingYear}
+                                        onChange={(e) => setPassingYear(e.target.value)}
+                                        className="w-full px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 rounded-lg text-xs font-bold text-amber-900 dark:text-amber-200"
+                                    >
+                                        <option value="2027">এসএসসি পরীক্ষা ২০২৭ (২০২৬ শিক্ষাবর্ষের টেস্ট উত্তীর্ণ ব্যাচ)</option>
+                                        <option value="2026">এসএসসি পরীক্ষা ২০২৬</option>
+                                        <option value="2025">এসএসসি পরীক্ষা ২০২৫</option>
+                                        <option value="2024">এসএসসি পরীক্ষা ২০২৪</option>
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
                     </div>

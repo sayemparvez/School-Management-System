@@ -70,6 +70,12 @@ router.put(
 router.get("/subjects", authMiddleware, studentController.getStudentSubjects);
 
 
+// Ex-Students / Alumni Routes
+router.get("/alumni", authMiddleware, studentController.getAlumniStudents);
+router.post("/graduate", authMiddleware, studentController.graduateStudents);
+router.post("/alumni", authMiddleware, studentController.addAlumniStudent);
+router.put("/alumni/:id", authMiddleware, studentController.updateAlumniStudent);
+
 // Admin Routes
 
 router.get("/", authMiddleware, studentController.getAllStudents);

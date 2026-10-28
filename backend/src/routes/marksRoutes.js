@@ -33,6 +33,7 @@ router.delete("/delete-subject", protect, marksController.deleteSubjectMarks);
 
 // Marks report
 router.get("/report", protect, marksController.getMarksReport);
+router.get("/review", protect, marksController.getMarksReview);
 
 router.get("/subject-report", marksController.getSubjectReport);
 router.get("/student-marks", marksController.getStudentMarksheet);

@@ -19,20 +19,21 @@ const FacultyProfile = ({ faculty, onClose, onUpdated }) => {
     const [showSaveModal, setShowSaveModal] = useState(false);
 
     const [form, setForm] = useState({
+        pdsid: faculty?.pdsid || "",
         facultyid: faculty?.facultyid || "",
         facultyname: faculty?.facultyname || "",
-        state: faculty?.state || "",
-        city: faculty?.city || "",
+        state: faculty?.state || "Rangpur",
+        city: faculty?.city || "Nilphamari",
         emailid: faculty?.emailid || "",
         contactnumber: faculty?.contactnumber || "",
         qualification: faculty?.qualification || "",
         experience: faculty?.experience || "",
         birthdate: faculty?.birthdate || "",
-        gender: faculty?.gender || "",
+        gender: faculty?.gender || "Female",
         courcecode: faculty?.courcecode || "NOT ASSIGNED",
         semoryear: faculty?.semoryear || "",
         subject: faculty?.subject || "NOT ASSIGNED",
-        position: faculty?.position || "NOT ASSIGNED",
+        position: faculty?.position || "Assistant Teacher (সহকারী শিক্ষক)",
         joineddate: faculty?.joineddate || today,
         password: ""
     });
@@ -103,18 +104,14 @@ const FacultyProfile = ({ faculty, onClose, onUpdated }) => {
         setError("");
 
         if (
-            !form.facultyid ||
             !form.facultyname ||
-            !form.state ||
-            !form.city ||
             !form.emailid ||
             !form.contactnumber ||
             !form.qualification ||
-            !form.experience ||
             !form.birthdate ||
             !form.gender
         ) {
-            setError("All required fields must be filled.");
+            setError("শিক্ষকের নাম, ইমেইল, মোবাইল নম্বর, শিক্ষাগত যোগ্যতা, জন্মতারিখ ও লিঙ্গ আবশ্যক।");
             return;
         }
 
@@ -161,13 +158,13 @@ const FacultyProfile = ({ faculty, onClose, onUpdated }) => {
     };
 
     const positionOptions = [
-        "NOT ASSIGNED",
-        "Full Professor",
-        "Associate Professor",
-        "Assistant Professor",
-        "Lecturer",
-        "Lab Assistant",
-        "Visiting Faculty"
+        "Headmaster (প্রধান শিক্ষক)",
+        "Headmaster (ভারপ্রাপ্ত) (ভারপ্রাপ্ত প্রধান শিক্ষক)",
+        "Assistant Headmaster (সহকারী প্রধান শিক্ষক)",
+        "Senior Teacher (সিনিয়র শিক্ষক)",
+        "Assistant Teacher (সহকারী শিক্ষক)",
+        "Guest Teacher (অতিথি শিক্ষক)",
+        "Part-time Teacher (খণ্ডকালীন শিক্ষক)"
     ];
 
     const genderOptions = ["", "Male", "Female", "Other"];
@@ -224,7 +221,7 @@ const FacultyProfile = ({ faculty, onClose, onUpdated }) => {
 
                     {/* Form Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <Input required label="Faculty ID" name="facultyid" value={form.facultyid} onChange={handleChange} />
+                        <Input label="PDS ID (ঐচ্ছিক / Optional)" name="pdsid" value={form.pdsid} onChange={handleChange} placeholder="যেমন: 2011050" />
                         <Input required label="Full Name" name="facultyname" value={form.facultyname} onChange={handleChange} />
                         <Input required label="State" name="state" value={form.state} onChange={handleChange} />
                         <Input required label="City" name="city" value={form.city} onChange={handleChange} />

@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import api from "../../utils/api";
 import Toast from "../../components/ui/Toast.jsx";
 import ConfirmSaveModal from "../../components/modals/ConfirmSaveModal.jsx";
+import MarksReviewModal from "../../components/modals/MarksReviewModal.jsx";
+import { Eye } from "lucide-react";
 import {
     Award,
     Filter,
@@ -32,6 +34,7 @@ export default function PublishResult() {
     const [showPublishModal, setShowPublishModal] = useState(false);
     const [showUnpublishModal, setShowUnpublishModal] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [reviewSubject, setReviewSubject] = useState(null);
 
     // Fetch classes
     useEffect(() => {
@@ -374,6 +377,16 @@ export default function PublishResult() {
                                         </div>
 
                                         <div className="flex items-center gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setReviewSubject(sub.subjectcode)}
+                                                className="px-2.5 py-1 text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors flex items-center gap-1.5 active:scale-95"
+                                                title="খাতা মূল্যায়ন ও প্রাপ্ত নম্বর পর্যালোচনা করুন"
+                                            >
+                                                <Eye className="w-3.5 h-3.5" />
+                                                <span>নম্বর রিভিউ দেখুন</span>
+                                            </button>
+
                                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
                                                 hasMarks
                                                     ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
@@ -420,6 +433,16 @@ export default function PublishResult() {
                 loading={actionLoading}
                 onCancel={() => setShowUnpublishModal(false)}
                 onConfirm={handleUnpublish}
+            />
+
+            <MarksReviewModal
+                isOpen={!!reviewSubject}
+                onClose={() => setReviewSubject(null)}
+                course={selectedCourse}
+                sem={selectedSem}
+                subject={reviewSubject}
+                canApprove={canPublish && !isPublished}
+                onApprove={() => { setReviewSubject(null); setShowPublishModal(true); }}
             />
 
             {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}

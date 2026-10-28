@@ -581,10 +581,30 @@ exports.importStudentsFromExcel = async (req, res) => {
 
 exports.promoteStudents = async (req, res) => {
   try {
-    const { fromCourse, toCourse, studentIds } = req.body;
+    const { fromCourse, toCourse, studentIds, passingYear } = req.body;
 
     if (!fromCourse || !toCourse || !Array.isArray(studentIds) || studentIds.length === 0) {
       return res.status(400).json({ message: "Source class, target class, and student selection are required." });
+    }
+
+    if (toCourse === "ALUMNI" || toCourse === "GRADUATED") {
+      const year = passingYear || new Date().getFullYear().toString();
+      const result = await db.query(
+        `UPDATE students
+         SET is_alumni = true,
+             ssc_passing_year = $1,
+             graduation_date = CURRENT_DATE,
+             activestatus = 0
+         WHERE sr_no = ANY($2::int[]) AND Courcecode = $3
+         RETURNING sr_no, rollnumber, firstname, lastname`,
+        [year, studentIds, fromCourse]
+      );
+
+      return res.json({
+        message: `${result.rowCount} জন শিক্ষার্থীকে সফলভাবে প্রাক্তন শিক্ষার্থী আর্কাইভে (এসএসসি ব্যাচ ${year}) স্থানান্তর করা হয়েছে।`,
+        promotedCount: result.rowCount,
+        students: result.rows
+      });
     }
 
     const result = await db.query(
@@ -603,5 +623,221 @@ exports.promoteStudents = async (req, res) => {
   } catch (error) {
     console.error("Error promoting students:", error);
     res.status(500).json({ message: "Failed to promote students." });
+  }
+};
+
+// ============================
+// Ex-Students / Alumni Management
+// ============================
+
+exports.getAlumniStudents = async (req, res) => {
+  try {
+    const { passing_year, course_code, search } = req.query;
+
+    let query = `
+      SELECT sr_no, rollnumber, firstname, lastname, emailid, contactnumber, 
+             dateofbirth, gender, courcecode, academic_year, scholarship_type,
+             is_alumni, ssc_passing_year, ssc_gpa, ssc_board_roll, ssc_reg_no,
+             graduation_date, fathername, mothername, city, state, profilepic
+      FROM students
+      WHERE (is_alumni = true OR Courcecode = 'ALUMNI')
+    `;
+    const params = [];
+
+    if (passing_year) {
+      params.push(passing_year);
+      query += ` AND ssc_passing_year = ${params.length}`;
+    }
+
+    if (course_code) {
+      params.push(course_code);
+      query += ` AND courcecode = ${params.length}`;
+    }
+
+    if (search) {
+      params.push(`%${search.trim()}%`);
+      query += ` AND (
+        CONCAT(firstname, ' ', lastname) ILIKE ${params.length}
+        OR CAST(rollnumber AS TEXT) ILIKE ${params.length}
+        OR ssc_board_roll ILIKE ${params.length}
+        OR ssc_reg_no ILIKE ${params.length}
+      )`;
+    }
+
+    query += ` ORDER BY ssc_passing_year DESC, rollnumber ASC`;
+
+    const result = await db.query(query, params);
+
+    const yearsResult = await db.query(`
+      SELECT DISTINCT ssc_passing_year 
+      FROM students 
+      WHERE (is_alumni = true OR Courcecode = 'ALUMNI') AND ssc_passing_year IS NOT NULL 
+      ORDER BY ssc_passing_year DESC
+    `);
+    const availableYears = yearsResult.rows.map(r => r.ssc_passing_year);
+
+    res.json({
+      students: result.rows.map(s => ({
+        ...s,
+        profilepic: getStudentImage(s.rollnumber)
+      })),
+      total: result.rowCount,
+      availableYears
+    });
+  } catch (error) {
+    console.error("Error fetching alumni:", error);
+    res.status(500).json({ message: "Error fetching alumni records" });
+  }
+};
+
+exports.graduateStudents = async (req, res) => {
+  try {
+    const { studentIds, passingYear, graduationDate } = req.body;
+    if (!Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ message: "Student IDs are required." });
+    }
+
+    const year = passingYear || new Date().getFullYear().toString();
+    const gradDate = graduationDate || new Date().toISOString().split("T")[0];
+
+    const result = await db.query(
+      `UPDATE students
+       SET is_alumni = true,
+           ssc_passing_year = $1,
+           graduation_date = $2,
+           activestatus = 0
+       WHERE sr_no = ANY($3::int[])
+       RETURNING sr_no, rollnumber, firstname, lastname, ssc_passing_year`,
+      [year, gradDate, studentIds]
+    );
+
+    res.json({
+      message: `${result.rowCount} জন শিক্ষার্থীকে সফলভাবে প্রাক্তন শিক্ষার্থী আর্কাইভে (এসএসসি ব্যাচ ${year}) স্থানান্তর করা হয়েছে।`,
+      graduated: result.rows
+    });
+  } catch (error) {
+    console.error("Error graduating students:", error);
+    res.status(500).json({ message: "Error graduating students" });
+  }
+};
+
+exports.addAlumniStudent = async (req, res) => {
+  try {
+    const {
+      rollnumber,
+      firstname,
+      lastname,
+      contactnumber,
+      courcecode,
+      ssc_passing_year,
+      ssc_board_roll,
+      ssc_reg_no,
+      ssc_gpa,
+      fathername,
+      mothername,
+      city,
+      dateofbirth,
+      gender
+    } = req.body;
+
+    if (!rollnumber || !firstname || !ssc_passing_year) {
+      return res.status(400).json({ message: "Roll number, Name and SSC Passing Year are required." });
+    }
+
+    const check = await db.query("SELECT sr_no FROM students WHERE rollnumber = $1", [rollnumber]);
+    if (check.rows.length > 0) {
+      return res.status(400).json({ message: "Student with this roll number already exists." });
+    }
+
+    const result = await db.query(
+      `INSERT INTO students (
+        rollnumber, firstname, lastname, contactnumber, courcecode,
+        ssc_passing_year, ssc_board_roll, ssc_reg_no, ssc_gpa,
+        fathername, mothername, city, dateofbirth, gender,
+        is_alumni, activestatus, semoryear, graduation_date
+      ) VALUES (
+        $1, $2, $3, $4, $5,
+        $6, $7, $8, $9,
+        $10, $11, $12, $13, $14,
+        true, 0, 2, CURRENT_DATE
+      ) RETURNING *`,
+      [
+        rollnumber,
+        firstname,
+        lastname || "",
+        contactnumber || "",
+        courcecode || "CLASS-10-SCI",
+        ssc_passing_year,
+        ssc_board_roll || null,
+        ssc_reg_no || null,
+        ssc_gpa || null,
+        fathername || null,
+        mothername || null,
+        city || null,
+        dateofbirth || null,
+        gender || "Female"
+      ]
+    );
+
+    res.json({
+      message: "প্রাক্তন শিক্ষার্থী সফলভাবে যুক্ত করা হয়েছে।",
+      student: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Error adding alumni student:", error);
+    res.status(500).json({ message: "Error adding alumni student" });
+  }
+};
+
+exports.updateAlumniStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      ssc_passing_year,
+      ssc_board_roll,
+      ssc_reg_no,
+      ssc_gpa,
+      contactnumber,
+      fathername,
+      mothername,
+      city
+    } = req.body;
+
+    const result = await db.query(
+      `UPDATE students
+       SET ssc_passing_year = COALESCE($1, ssc_passing_year),
+           ssc_board_roll = COALESCE($2, ssc_board_roll),
+           ssc_reg_no = COALESCE($3, ssc_reg_no),
+           ssc_gpa = COALESCE($4, ssc_gpa),
+           contactnumber = COALESCE($5, contactnumber),
+           fathername = COALESCE($6, fathername),
+           mothername = COALESCE($7, mothername),
+           city = COALESCE($8, city)
+       WHERE sr_no = $9
+       RETURNING *`,
+      [
+        ssc_passing_year,
+        ssc_board_roll,
+        ssc_reg_no,
+        ssc_gpa,
+        contactnumber,
+        fathername,
+        mothername,
+        city,
+        id
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Alumni student not found" });
+    }
+
+    res.json({
+      message: "তথ্য সফলভাবে আপডেট করা হয়েছে।",
+      student: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Error updating alumni student:", error);
+    res.status(500).json({ message: "Error updating alumni student" });
   }
 };

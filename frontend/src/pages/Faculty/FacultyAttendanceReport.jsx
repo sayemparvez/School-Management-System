@@ -171,7 +171,7 @@ export default function FacultyAttendanceReport() {
               </div>
               <div className="space-y-1">
                 <span className="flex items-center gap-2 text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                  <Layers className="w-3 h-3 text-indigo-600 dark:text-indigo-500" /> Semester / Year
+                  <Layers className="w-3 h-3 text-indigo-600 dark:text-indigo-500" /> পরীক্ষা / টার্ম (Exam Term)
                 </span>
                 <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedSem}</p>
               </div>
