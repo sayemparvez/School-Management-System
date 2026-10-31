@@ -38,16 +38,24 @@ export default function MoneyReceiptModal({ isOpen, onClose, receipt }) {
         <div id="printable-receipt" className="p-6 sm:p-8 space-y-5 bg-white text-slate-900">
           
           {/* Institutional Header */}
-          <div className="text-center border-b border-slate-200 pb-4">
-            <h2 className="text-lg font-black tracking-tight text-slate-900">
-              ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়
-            </h2>
-            <p className="text-xs font-semibold text-slate-600">
-              Dimla Government Girls' High School, Nilphamari
-            </p>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-indigo-700 mt-1">
-              ফি আদায় মানি রসিদ (Official Money Receipt)
-            </p>
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4 gap-4">
+            <div className="w-14 h-14 shrink-0">
+              <img src="/logo.png" alt="School Seal" className="w-full h-full object-contain" />
+            </div>
+            <div className="text-center flex-1">
+              <h2 className="text-lg font-black tracking-tight text-slate-900">
+                ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়
+              </h2>
+              <p className="text-xs font-semibold text-slate-600">
+                Dimla Government Girls' High School, Nilphamari
+              </p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-indigo-700 mt-1">
+                ফি আদায় মানি রসিদ (Official Money Receipt)
+              </p>
+            </div>
+            <div className="w-14 h-14 shrink-0 hidden sm:block">
+              <img src="/logo.png" alt="School Seal" className="w-full h-full object-contain" />
+            </div>
           </div>
 
           {/* Receipt Meta */}

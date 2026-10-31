@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import api from "../../utils/api";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
     GraduationCap,
     ArrowRight,
@@ -173,20 +174,13 @@ export default function PromoteStudents() {
 
     return (
         <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-16">
-            
-            {/* PLATFORM HEADER */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-600 text-white rounded-lg shadow-md shadow-emerald-500/20">
-                            <Sparkles className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">Student Promotion (শ্রেণি উত্তীর্ণকরণ)</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">Dimla Government Girls' High School</p>
-                        </div>
-                    </div>
-
+            <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 space-y-6">
+                <AdminPageHeader
+                    badge="শিক্ষাবর্ষ নবায়ন • ক্লাস প্রমোশন"
+                    badgeIcon={Sparkles}
+                    title="শিক্ষার্থী প্রমোশন ও মাইগ্রেশন (Promote Students)"
+                    subtitle="বার্ষিক পরীক্ষার ফলাফলের ভিত্তিতে ছাত্রীদের সফলভাবে পরবর্তী শ্রেণিতে উত্তীর্ণ ও রোল নম্বর নবায়ন করুন।"
+                >
                     <button
                         onClick={() => {
                             setFromCourse("");
@@ -194,15 +188,12 @@ export default function PromoteStudents() {
                             setSelectedIds([]);
                             setError("");
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                        className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer"
                     >
-                        <RotateCcw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Reset</span>
+                        <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
+                        <span>রিসেট নির্বাচন</span>
                     </button>
-                </div>
-            </header>
-
-            {/* MAIN CONTENT AREA */}
-            <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 space-y-6">
+                </AdminPageHeader>
 
                 {/* Info Card */}
                 <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 flex items-start gap-3.5 text-xs text-emerald-900 dark:text-emerald-200">

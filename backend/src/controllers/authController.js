@@ -39,13 +39,14 @@ exports.login = async (req, res) => {
             table = "admin";
         }
 
-        // Check faculties (by email OR mobile number OR pdsid)
+        // Check faculties (by email OR mobile number OR pdsid OR facultyid)
         if (!user) {
             const { rows: facultyRows } = await db.query(
                 `SELECT * FROM faculties 
                  WHERE emailid = $1 
                     OR contactnumber = $1 
                     OR (pdsid IS NOT NULL AND pdsid = $1)
+                    OR facultyid::text = $1
                  LIMIT 1`,
                 [identifier]
             );
@@ -93,27 +94,40 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: "পাসওয়ার্ড সঠিক নয়।" });
         }
 
+        const userEmailOrIdentifier = user.emailid || user.contactnumber || String(user.rollnumber || "");
+        const isSuperAdmin = Boolean(user.is_super_admin || user.role === "super_admin");
         const token = jwt.sign(
             { 
-                email: user.emailid, 
+                email: userEmailOrIdentifier, 
+                rollnumber: user.rollnumber || null,
+                contactnumber: user.contactnumber || null,
+                sr_no: user.sr_no || user.id || null,
                 role,
-                name: user.facultyname || user.firstname || "User"
+                is_super_admin: isSuperAdmin,
+                name: user.name || user.facultyname || `${user.firstname || ""} ${user.lastname || ""}`.trim() || "User"
             },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 
-       await db.query(
-    `UPDATE ${table} SET activestatus = 1, lastlogin = $1 WHERE emailid = $2`,
-    [new Date().toISOString(), user.emailid]
-);
+        const updateIdField = user.sr_no ? "sr_no" : (user.id ? "id" : "emailid");
+        const updateIdVal = user.sr_no || user.id || user.emailid;
+
+        await db.query(
+            `UPDATE ${table} SET activestatus = 1, lastlogin = $1 WHERE ${updateIdField} = $2`,
+            [new Date().toISOString(), updateIdVal]
+        );
+
         res.json({
             message: "Login successful",
             token,
             role,
             user: {
-                name: user.facultyname || `${user.firstname || ""} ${user.lastname || ""}`.trim() || "User",
-                email: user.emailid,
+                name: user.name || user.facultyname || `${user.firstname || ""} ${user.lastname || ""}`.trim() || "User",
+                email: user.emailid || user.contactnumber,
+                is_super_admin: isSuperAdmin,
+                admin_role: user.role || (isSuperAdmin ? "super_admin" : role),
+                rollnumber: user.rollnumber || null,
                 position: user.position || null,
                 pdsid: user.pdsid || null,
                 contactnumber: user.contactnumber || null

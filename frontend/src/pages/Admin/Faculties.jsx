@@ -4,6 +4,7 @@ import FacultyProfile from "./FacultyProfile";
 import ImportFacultyModal from "../../components/modals/ImportFacultyModal.jsx";
 import ConfirmDeleteModal from "../../components/modals/ConfirmDeleteModal.jsx";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
     Users,
     Search,
@@ -18,16 +19,25 @@ import {
     Key
 } from "lucide-react";
 
+const getEnglishName = (name) => {
+    if (!name) return "";
+    const match = name.match(/\(([^)]+)\)/);
+    if (match && /[a-zA-Z]/.test(match[1])) return match[1].trim();
+    if (/[\u0980-\u09FF]/.test(name) && /[a-zA-Z]/.test(name)) {
+        const cleaned = name.replace(/[\u0980-\u09FF]/g, "").replace(/^[()/\-\s]+|[()/\-\s]+$/g, "").trim();
+        if (cleaned) return cleaned;
+    }
+    return name;
+};
+
 const Faculties = () => {
     const BASE_URL = api.defaults.baseURL;
     const token = localStorage.getItem("token");
 
     const [faculties, setFaculties] = useState([]);
-    const [courses, setCourses] = useState([]);
-
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
-    const [courseFilter, setCourseFilter] = useState("");
+    const [subjectFilter, setSubjectFilter] = useState("");
 
     const [selectedFaculty, setSelectedFaculty] = useState(null);
     const [isNew, setIsNew] = useState(false);
@@ -85,7 +95,7 @@ const Faculties = () => {
     /* ================= DELETE ================= */
 
     const handleResetPassword = async (faculty) => {
-        const confirmReset = window.confirm(`আপনি কি ${faculty.facultyname}-এর পাসওয়ার্ড রিসেট করতে চান? ডিফল্ট পাসওয়ার্ড হবে শিক্ষকের জন্মতারিখ (YYYY-MM-DD)।`);
+        const confirmReset = window.confirm(`আপনি কি ${faculty.facultyname}-এর পাসওয়ার্ড রিসেট করতে চান? ডিফল্ট পাসওয়ার্ড হবে @DGGHS123@।`);
         if (!confirmReset) return;
 
         try {
@@ -121,54 +131,47 @@ const Faculties = () => {
     /* ================= FILTER ================= */
 
     const filteredFaculties = faculties.filter((faculty) => {
+        const q = search.toLowerCase();
         const matchesSearch =
-            faculty?.facultyname?.toLowerCase().includes(search.toLowerCase()) ||
-            faculty?.emailid?.toLowerCase().includes(search.toLowerCase());
+            !search ||
+            faculty?.facultyname?.toLowerCase().includes(q) ||
+            faculty?.emailid?.toLowerCase().includes(q) ||
+            faculty?.contactnumber?.toLowerCase().includes(q) ||
+            faculty?.pdsid?.toLowerCase().includes(q) ||
+            faculty?.subject?.toLowerCase().includes(q) ||
+            faculty?.position?.toLowerCase().includes(q);
 
         const matchesStatus =
             !statusFilter ||
             String(faculty?.activestatus) === statusFilter;
 
-        const matchesCourse =
-            !courseFilter ||
-            faculty?.courcecode === courseFilter;
+        const matchesSubject =
+            !subjectFilter ||
+            (faculty?.subject && faculty.subject.toLowerCase().includes(subjectFilter.toLowerCase()));
 
-        return matchesSearch && matchesStatus && matchesCourse;
+        return matchesSearch && matchesStatus && matchesSubject;
     });
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-12">
-
-            {/* PLATFORM HEADER - GLASSMORPHISM */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-600 text-white rounded-lg shadow-md shadow-blue-500/20">
-                            <Briefcase className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">শিক্ষক তালিকা ও পরিচালনা (Teacher Directory)</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয় • শিক্ষক প্যানেল</p>
-                        </div>
-                    </div>
-
-                    {/* GLOBAL ACTIONS */}
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setShowImportModal(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors active:scale-95">
-                            <UploadCloud className="w-4 h-4" />
-                            <span className="hidden sm:inline">Import Data</span>
-                        </button>
-                        <button onClick={() => { setIsNew(true); setSelectedFaculty({}); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors shadow-sm shadow-blue-500/20 active:scale-95">
-                            <Plus className="w-4 h-4" />
-                            <span className="hidden sm:inline">নতুন শিক্ষক যোগ করুন</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
-
             <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6">
+                <AdminPageHeader
+                    badge="শিক্ষকবৃন্দ • শিক্ষক ডিরেক্টরি"
+                    badgeIcon={Briefcase}
+                    title="সম্মানিত শিক্ষক তালিকা (Teachers Directory)"
+                    subtitle="ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়ের শিক্ষক-শিক্ষিকাবৃন্দের পদবি, বিষয় ও যোগাযোগ তথ্য ব্যবস্থাপনা।"
+                >
+                    <button onClick={() => setShowImportModal(true)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer">
+                        <UploadCloud className="w-4 h-4 text-emerald-300" />
+                        <span>এক্সেল ইমপোর্ট</span>
+                    </button>
+                    <button onClick={() => { setIsNew(true); setSelectedFaculty({}); }}
+                            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer">
+                        <Plus className="w-4 h-4" />
+                        <span>নতুন শিক্ষক যোগ করুন</span>
+                    </button>
+                </AdminPageHeader>
 
                 {/* ERROR STATE */}
                 {error && (
@@ -190,23 +193,27 @@ const Faculties = () => {
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <Search className="h-4 w-4 text-slate-400" />
                             </div>
-                            <input type="text" placeholder="Search name or email..." value={search} onChange={(e) => setSearch(e.target.value)}
+                            <input type="text" placeholder="শিক্ষকের নাম, মোবাইল, PDS বা বিষয় খুঁজুন..." value={search} onChange={(e) => setSearch(e.target.value)}
                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                         </div>
 
                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
                                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
-                            <option value="">All Statuses</option>
-                            <option value="1">Active Faculty</option>
-                            <option value="0">Inactive Faculty</option>
+                            <option value="">সকল স্ট্যাটাস (All Status)</option>
+                            <option value="1">সক্রিয় শিক্ষক (Active)</option>
+                            <option value="0">নিষ্ক্রিয় (Inactive)</option>
                         </select>
 
-                        <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}
+                        <select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}
                                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
-                            <option value="">All Courses</option>
-                            {courses.map((course) => (
-                                <option key={course.id} value={course.course_code}>{course.course_name}</option>
-                            ))}
+                            <option value="">সকল বিষয় (All Subjects)</option>
+                            <option value="বাংলা">বাংলা (Bangla)</option>
+                            <option value="ইংরেজি">ইংরেজি (English)</option>
+                            <option value="গণিত">গণিত (Mathematics)</option>
+                            <option value="বিজ্ঞান">বিজ্ঞান (Science)</option>
+                            <option value="সামাজিক">সামাজিক বিজ্ঞান (Social Science)</option>
+                            <option value="তথ্য ও যোগাযোগ">তথ্য ও যোগাযোগ প্রযুক্তি (ICT)</option>
+                            <option value="ধর্ম">ধর্ম ও নৈতিক শিক্ষা (Religion)</option>
                         </select>
                     </div>
                 </section>
@@ -220,7 +227,7 @@ const Faculties = () => {
                                 <th className="w-[15%] sm:w-[8%] px-2 sm:px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">DP</th>
                                 <th className="w-[55%] sm:w-[25%] px-2 sm:px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">শিক্ষকের নাম ও PDS ID</th>
                                 <th className="hidden sm:table-cell sm:w-[18%] px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">পদবি (Designation)</th>
-                                <th className="hidden lg:table-cell lg:w-[20%] px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Assignment</th>
+                                <th className="hidden lg:table-cell lg:w-[20%] px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">পাঠদানের বিষয় (Subject)</th>
                                 <th className="hidden md:table-cell sm:w-[12%] px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
                                 <th className="w-[30%] sm:w-[20%] px-2 sm:px-4 py-3.5 text-right sm:text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -255,7 +262,7 @@ const Faculties = () => {
                                     <tr key={faculty.sr_no} className={`${idx % 2 === 0 ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-slate-800/20'} hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-colors`}>
                                         <td className="w-[15%] sm:w-[8%] px-2 sm:px-4 py-3 text-center">
                                             <img
-                                                src={faculty.profilepic ? `${BASE_URL}/uploads/faculties/${faculty.profilepic}` : `${BASE_URL}/uploads/faculties/default.png`}
+                                                src={faculty.profilepic ? (faculty.profilepic.startsWith("http") ? faculty.profilepic : `${BASE_URL}/uploads/faculties/${faculty.profilepic}`) : `${BASE_URL}/uploads/faculties/default.png`}
                                                 alt="profile"
                                                 className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm mx-auto"
                                             />
@@ -263,7 +270,7 @@ const Faculties = () => {
 
                                         <td className="w-[55%] sm:w-[25%] px-2 sm:px-4 py-3">
                                             <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                                                {faculty.facultyname}
+                                                {getEnglishName(faculty.facultyname)}
                                             </div>
                                             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 truncate flex items-center gap-1.5">
                                                 {faculty.pdsid ? (
@@ -284,19 +291,14 @@ const Faculties = () => {
                                         </td>
 
                                         <td className="hidden lg:table-cell lg:w-[20%] px-4 py-3">
-                                            {faculty.courcecode !== "NOT ASSIGNED" ? (
-                                                <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
-                                                            {faculty.courcecode} • Sem {faculty.semoryear}
-                                                        </span>
-                                                    <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate" title={faculty.subject_name}>
-                                                            {faculty.subject}
-                                                        </span>
-                                                </div>
+                                            {faculty.subject && faculty.subject !== "NOT ASSIGNED" ? (
+                                                <span className="inline-flex items-center px-2.5 py-1 text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg border border-indigo-200/60 dark:border-indigo-800/40 truncate max-w-full" title={faculty.subject}>
+                                                    📚 {faculty.subject}
+                                                </span>
                                             ) : (
                                                 <span className="px-2 py-1 text-[9px] font-bold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 rounded uppercase tracking-wider">
-                                                        Unassigned
-                                                    </span>
+                                                    অনির্ধারিত
+                                                </span>
                                             )}
                                         </td>
 
@@ -315,19 +317,19 @@ const Faculties = () => {
                                         <td className="w-[30%] sm:w-[20%] px-2 sm:px-4 py-3 text-right sm:text-center">
                                             <div className="flex items-center justify-end sm:justify-center gap-1 sm:gap-2">
                                                 <button onClick={() => handleResetPassword(faculty)}
-                                                        className="p-1.5 sm:px-2.5 sm:py-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-1.5 sm:px-2.5 sm:py-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 rounded-lg transition-all flex items-center justify-center cursor-pointer active:scale-95"
                                                         title="পাসওয়ার্ড রিসেট করুন">
                                                     <Key className="w-3.5 h-3.5" />
                                                     <span className="hidden xl:inline text-[11px] font-bold ml-1">Reset Pass</span>
                                                 </button>
                                                 <button onClick={() => { setIsNew(false); setSelectedFaculty(faculty); }}
-                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-lg transition-all flex items-center justify-center cursor-pointer active:scale-95"
                                                         title="সম্পাদন করুন">
                                                     <Edit2 className="w-4 h-4" />
                                                     <span className="hidden xl:inline text-xs font-bold ml-1">Edit</span>
                                                 </button>
                                                 <button onClick={() => { setFacultyToDelete(faculty.sr_no); setShowDeleteModal(true); }}
-                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-all flex items-center justify-center cursor-pointer active:scale-95"
                                                         title="Delete Faculty">
                                                     <Trash2 className="w-4 h-4" />
                                                     <span className="hidden xl:inline text-xs font-bold ml-2">Delete</span>

@@ -12,6 +12,9 @@ const Login = () => {
     const from = location.state?.from;
     const lastPage = localStorage.getItem("lastPage");
 
+    const searchParams = new URLSearchParams(location.search);
+    const roleQuery = searchParams.get("role");
+
     const BASE_URL = api.defaults.baseURL;
 
     const [email, setEmail] = useState("");
@@ -116,6 +119,42 @@ const Login = () => {
         }
     };
 
+    const getSafeRedirect = (userRole) => {
+        const isRolePath = (path) => {
+            if (!path || typeof path !== "string") return false;
+            if (
+                path === "/" ||
+                path === "/login" ||
+                path.startsWith("/results") ||
+                path.startsWith("/notices") ||
+                path.startsWith("/student-") ||
+                path.startsWith("/teachers") ||
+                path.startsWith("/history") ||
+                path.startsWith("/at-a-glance") ||
+                path.startsWith("/staff") ||
+                path.startsWith("/contact") ||
+                path.startsWith("/committee")
+            ) {
+                return false;
+            }
+            if (userRole === "admin" && path.startsWith("/admin")) return true;
+            if (userRole === "faculty" && path.startsWith("/faculty")) return true;
+            if (userRole === "student" && path.startsWith("/student")) return true;
+            return false;
+        };
+
+        if (from && isRolePath(from.pathname)) {
+            return from.pathname + (from.search || "");
+        }
+        if (lastPage && isRolePath(lastPage)) {
+            return lastPage;
+        }
+        if (userRole === "admin") return "/admin/dashboard";
+        if (userRole === "faculty") return "/faculty/dashboard";
+        if (userRole === "student") return "/student/dashboard";
+        return "/admin/dashboard";
+    };
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
@@ -125,26 +164,14 @@ const Login = () => {
             const { token, role } = response.data;
             localStorage.setItem("token", token);
             localStorage.setItem("role", role);
-            if (from) {
-                navigate(from.pathname + (from.search || ""), { replace: true });
-                return;
-            }
-            if (lastPage) {
-                navigate(lastPage, { replace: true });
-                return;
-            }
-            if (role === "admin") {
-                navigate("/admin/dashboard", { replace: true });
-            } else if (role === "faculty") {
-                navigate("/faculty/dashboard", { replace: true });
-            } else if (role === "student") {
-                navigate("/student/dashboard", { replace: true });
-            }
+            localStorage.removeItem("lastPage");
+            const target = getSafeRedirect(role);
+            navigate(target, { replace: true });
         } catch (err) {
             if (!err.response) {
-                setError("Server unreachable. Check your connection.");
+                setError("সার্ভারে সংযোগ করা যাচ্ছে না। ব্যাকএন্ড চেক করুন।");
             } else {
-                setError("Invalid email or password");
+                setError(err.response?.data?.message || "ভুল ইমেইল/আইডি বা পাসওয়ার্ড প্রদান করা হয়েছে।");
             }
         } finally {
             setLoading(false);
@@ -159,23 +186,11 @@ const Login = () => {
             const { token, role } = response.data;
             localStorage.setItem("token", token);
             localStorage.setItem("role", role);
-            if (from) {
-                navigate(from.pathname + (from.search || ""), { replace: true });
-                return;
-            }
-            if (lastPage) {
-                navigate(lastPage, { replace: true });
-                return;
-            }
-            if (role === "admin") {
-                navigate("/admin/dashboard", { replace: true });
-            } else if (role === "faculty") {
-                navigate("/faculty/dashboard", { replace: true });
-            } else if (role === "student") {
-                navigate("/student/dashboard", { replace: true });
-            }
+            localStorage.removeItem("lastPage");
+            const target = getSafeRedirect(role);
+            navigate(target, { replace: true });
         } catch (err) {
-            setError(err.response ? "Google login failed" : "Server unreachable.");
+            setError(err.response?.data?.message || (err.response ? "Google login failed" : "Server unreachable."));
         }
     };
 
@@ -196,17 +211,16 @@ const Login = () => {
                 {/* Institutional Header */}
                 <div className="text-center mb-8">
                     {/* Fixed Size Container (w-20 h-20) */}
-                    <div className={`inline-flex w-20 h-20 rounded-2xl shadow-lg shadow-indigo-500/20 mb-4 overflow-hidden border border-slate-200 dark:border-slate-800 ${useFallback ? "bg-indigo-600 p-5 items-center justify-center" : "bg-white"}`}>
-                        {!useFallback ? (
-                            <img
-                                src={`${BASE_URL}/uploads/admin/admin.jpg`}
-                                alt="School Logo"
-                                className="w-full h-full object-cover"
-                                onError={() => setUseFallback(true)}
-                            />
-                        ) : (
-                            <GraduationCap size={40} className="text-white" />
-                        )}
+                    <div className="inline-flex w-20 h-20 rounded-2xl shadow-lg shadow-emerald-500/20 mb-4 overflow-hidden border border-slate-200 dark:border-slate-800 bg-white p-1 items-center justify-center">
+                        <img
+                            src={`${BASE_URL}/uploads/admin/admin.jpg`}
+                            alt="School Logo"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = "/logo.png";
+                            }}
+                        />
                     </div>
                     <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                         Dimla Government Girls' High School
@@ -227,10 +241,14 @@ const Login = () => {
 
                     <form onSubmit={handleLogin} className="space-y-5">
 
-                        {/* Email Address */}
+                        {/* Email / Identifier Address */}
                         <div className="space-y-1.5">
                             <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 px-1">
-                                ইমেইল / মোবাইল নম্বর / PDS ID
+                                {roleQuery === "student"
+                                    ? "শিক্ষার্থী আইডি / রোল / মোবাইল নম্বর / ইমেইল"
+                                    : roleQuery === "faculty"
+                                    ? "PDS ID / ইমেইল / মোবাইল নম্বর"
+                                    : "ইমেইল / মোবাইল নম্বর / আইডি"}
                             </label>
                             <div className="relative group">
                                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
@@ -242,7 +260,13 @@ const Login = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                    placeholder="017xxxxxxxx বা name@gmail.com বা PDS ID"
+                                    placeholder={
+                                        roleQuery === "student"
+                                            ? "শিক্ষার্থী আইডি, রোল নম্বর, মোবাইল বা ইমেইল"
+                                            : roleQuery === "faculty"
+                                            ? "PDS ID, মোবাইল নম্বর বা ইমেইল"
+                                            : "017xxxxxxxx বা name@gmail.com বা আইডি"
+                                    }
                                 />
                             </div>
                         </div>

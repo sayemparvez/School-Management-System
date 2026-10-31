@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
   Banknote,
   Filter,
@@ -116,34 +117,21 @@ export default function FeeStructure() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16">
-      
-      {/* HEADER */}
-      <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-md shadow-emerald-500/20">
-              <Banknote className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight">
-                শ্রেণিভিত্তিক ফি কাঠামো (Fee Structure Settings)
-              </h1>
-              <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
-                প্রধান শিক্ষক ও অ্যাডমিন পোর্টাল • ফি তালিকা ও হার নির্ধারণ
-              </p>
-            </div>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <AdminPageHeader
+          badge={`ফি পলিসি • শিক্ষাবর্ষ ${academicYear}`}
+          badgeIcon={Banknote}
+          title="শ্রেণিভিত্তিক ফি কাঠামো নির্ধারণ (Fee Structure)"
+          subtitle="৬ষ্ঠ হতে ১০ম শ্রেণি পর্যন্ত প্রতিটি ফি খাতের মাসিক ও বাৎসরিক টাকার পরিমাণ এবং ছাড়ের নিয়ম নির্ধারণ করুন।"
+        >
           <button
             onClick={fetchFeeStructure}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">রিফ্রেশ</span>
+            <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
+            <span>রিফ্রেশ</span>
           </button>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        </AdminPageHeader>
 
         {/* POLICY BANNER */}
         <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 text-xs text-emerald-900 dark:text-emerald-300">

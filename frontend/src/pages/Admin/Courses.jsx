@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import ConfirmDeleteModal from "../../components/modals/ConfirmDeleteModal.jsx";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
     GraduationCap,
     PlusCircle,
@@ -124,25 +125,13 @@ const Courses = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-12">
-
-            {/* PLATFORM HEADER */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-600 text-white rounded-lg shadow-md shadow-blue-500/20">
-                            <GraduationCap className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">শ্রেণি ও শিক্ষাবর্ষ ব্যবস্থাপনা (Class Management)</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
-                                Academic Year & Class Configuration • ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6">
+                <AdminPageHeader
+                    badge="একাডেমিক ব্যবস্থাপনা • শ্রেণি ও শিক্ষাবর্ষ"
+                    badgeIcon={GraduationCap}
+                    title="শ্রেণি ও শিক্ষাবর্ষ ব্যবস্থাপনা (Classes)"
+                    subtitle="ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়ের ৬ষ্ঠ হতে ১০ম শ্রেণির শিক্ষাবর্ষ, শাখা ও সেশন পরিচালনা করুন।"
+                />
 
                 {/* ERROR STATE */}
                 {error && (

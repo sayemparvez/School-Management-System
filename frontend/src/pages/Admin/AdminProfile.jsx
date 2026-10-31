@@ -16,6 +16,7 @@ import {
 import api from "../../utils/api";
 import ConfirmSaveModal from "../../components/modals/ConfirmSaveModal.jsx";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 
 const AdminProfile = () => {
     const token = localStorage.getItem("token");
@@ -56,37 +57,26 @@ const AdminProfile = () => {
     }
 
     return (
-        <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans">
-
-            {/* PLATFORM HEADER */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-500/20">
-                            <ShieldCheck className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">Admin Profile</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">Institution Management</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setShowDetailsModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 rounded-md transition-all active:scale-95">
-                            <Settings className="w-3.5 h-3.5" /> Edit Profile
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* MAIN CONTENT AREA */}
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-16">
+            <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 space-y-6">
+                <AdminPageHeader
+                    badge="অ্যাকাউন্ট ও নিরাপত্তা • অ্যাডমিন প্রোফাইল"
+                    badgeIcon={ShieldCheck}
+                    title="অ্যাডমিনিস্ট্রেটর প্রোফাইল (Admin Profile)"
+                    subtitle="বিদ্যালয় প্রশাসনের অ্যাকাউন্টের বিবরণ, যোগাযোগের তথ্য, পাসওয়ার্ড পরিবর্তন ও নিরাপত্তা সেটিংস।"
+                >
+                    <button onClick={() => setShowDetailsModal(true)} className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer">
+                        <Settings className="w-3.5 h-3.5" />
+                        <span>প্রোফাইল সম্পাদন</span>
+                    </button>
+                </AdminPageHeader>
 
                 {/* HERO CARD */}
                 <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6">
                     <div className="flex flex-col sm:flex-row items-center gap-6">
                         <div className="relative">
-                            <img src={admin?.logo ? `${api.defaults.baseURL}${admin.logo}` : `${api.defaults.baseURL}/uploads/admin/default.png`}
-                                 alt="Logo" className="h-24 w-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm" />
+                            <img src={admin?.logo ? `${api.defaults.baseURL}${admin.logo}` : "/logo.png"}
+                                 alt="Logo" className="h-24 w-24 object-contain rounded-xl bg-white p-1 border border-slate-200 dark:border-slate-700 shadow-sm" />
                         </div>
                         <div className="text-center sm:text-left">
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">

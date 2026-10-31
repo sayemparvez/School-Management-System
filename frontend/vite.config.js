@@ -88,6 +88,12 @@ export default defineConfig(({ mode }) => {
       host: true,
       port: 5173,
       strictPort: true,
+      proxy: {
+        "/uploads": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+        },
+      },
     },
 
   };

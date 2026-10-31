@@ -21,6 +21,7 @@ const studentMarksheetRoutes = require("./routes/studentMarksheetRoutes");
 const resultRoutes = require("./routes/resultRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const feeRoutes = require("./routes/feeRoutes");
+const publicRoutes = require("./routes/publicRoutes");
 
 const app = express();
 
@@ -54,8 +55,12 @@ app.get("/status", (req, res) => {
     res.status(200).json({ status: "ok" });
 });
 
-// serve uploaded images
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// serve uploaded images with fast browser caching (30 days maxAge)
+app.use("/uploads", express.static(path.join(__dirname, "../uploads"), {
+    maxAge: "30d",
+    etag: true,
+    lastModified: true
+}));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -75,5 +80,6 @@ app.use("/api/student", studentMarksheetRoutes);
 app.use("/api/result", resultRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/fees", feeRoutes);
+app.use("/api/public", publicRoutes);
 
 module.exports = app;

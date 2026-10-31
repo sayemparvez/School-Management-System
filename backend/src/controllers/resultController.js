@@ -171,7 +171,10 @@ exports.publishResult = async (req, res) => {
         // Fetch course name
         const cRes = await db.query("SELECT course_name FROM courses WHERE course_code = $1", [course]);
         const courseName = cRes.rows[0]?.course_name || course;
-        const examName = Number(sem) === 1 ? "অর্ধ-বার্ষিক (Half Yearly)" : "বার্ষিক (Final)";
+        const isClass10 = String(course).toUpperCase().includes("10");
+        const examName = isClass10
+            ? (Number(sem) === 1 ? "প্রাক-নির্বাচনী পরীক্ষা (Pre-Test)" : "নির্বাচনী পরীক্ষা (Test)")
+            : (Number(sem) === 1 ? "অর্ধবার্ষিক পরীক্ষা (Half Yearly)" : "বার্ষিক পরীক্ষা (Annual Final)");
 
         // Send notifications
         // 1. To Students

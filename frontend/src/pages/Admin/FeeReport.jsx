@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import MoneyReceiptModal from "../../components/modals/MoneyReceiptModal.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
   BarChart3,
   Filter,
@@ -11,6 +12,21 @@ import {
   Banknote,
   FileText
 } from "lucide-react";
+
+const MONTH_NAMES = [
+  "জানুয়ারি (January)",
+  "ফেব্রুয়ারি (February)",
+  "মার্চ (March)",
+  "এপ্রিল (April)",
+  "মে (May)",
+  "জুন (June)",
+  "জুলাই (July)",
+  "আগস্ট (August)",
+  "সেপ্টেম্বর (September)",
+  "অক্টোবর (October)",
+  "নভেম্বর (November)",
+  "ডিসেম্বর (December)"
+];
 
 export default function FeeReport() {
   const token = localStorage.getItem("token");
@@ -67,42 +83,28 @@ export default function FeeReport() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16">
-      
-      {/* HEADER */}
-      <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-500/20">
-              <BarChart3 className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight">
-                ফি আদায় প্রতিবেদন ও লেজার (Fee Collection Ledger)
-              </h1>
-              <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
-                হিসাবরক্ষণ ও অডিট রিপোর্ট • ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrintReport}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>রিপোর্ট প্রিন্ট করুন</span>
-            </button>
-            <button
-              onClick={fetchReport}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <AdminPageHeader
+          badge="হিসাবরক্ষণ ও অডিট • ফি লেজার"
+          badgeIcon={BarChart3}
+          title="ফি আদায় প্রতিবেদন ও লেজার (Fee Report)"
+          subtitle="দৈনিক, মাসিক ও খাতভিত্তিক মোট আদায়, ছাত্রীদের বকেয়া ও আয়-ব্যয় অডিট রিপোর্ট বিশ্লেষণ করুন।"
+        >
+          <button
+            onClick={handlePrintReport}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer"
+          >
+            <Printer className="w-3.5 h-3.5 text-emerald-300" />
+            <span>রিপোর্ট প্রিন্ট করুন</span>
+          </button>
+          <button
+            onClick={fetchReport}
+            className="p-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer"
+            title="রিফ্রেশ"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
+          </button>
+        </AdminPageHeader>
 
         {/* PRINT HEADER ONLY VISIBLE WHEN PRINTING */}
         <div className="hidden print:block text-center border-b pb-4 mb-4 text-black">
@@ -160,9 +162,9 @@ export default function FeeReport() {
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none"
               >
                 <option value="">সকল মাস</option>
-                {[...Array(12)].map((_, i) => (
+                {MONTH_NAMES.map((mName, i) => (
                   <option key={i + 1} value={i + 1}>
-                    মাস {i + 1}
+                    {mName}
                   </option>
                 ))}
               </select>

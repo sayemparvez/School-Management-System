@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import api from "../../utils/api";
 import Toast from "../../components/ui/Toast.jsx";
 import MoneyReceiptModal from "../../components/modals/MoneyReceiptModal.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
   Banknote,
   Filter,
@@ -348,36 +349,21 @@ export default function FeeCollection() {
 
   return (
     <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-24">
-      
-      {/* PLATFORM HEADER */}
-      <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white rounded-xl shadow-md shadow-emerald-500/20">
-              <Banknote className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight leading-tight">
-                ফি কালেকশন ও হিসাব (Class Fee Collection)
-              </h1>
-              <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
-                ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয় • সকল খাতের সমন্বিত ফি ও রসিদ
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={fetchFeeData}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> রিফ্রেশ
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6 w-full print:p-0">
+        <AdminPageHeader
+          badge="ফি ব্যবস্থাপনা • আদায় ও রসিদ"
+          badgeIcon={Banknote}
+          title="ফি কালেকশন ও হিসাব (Fee Collection)"
+          subtitle="ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয় • মাসিক বেতন, সেশন ফি ও পরীক্ষার ফি গ্রহণ ও ডিজিটাল রসিদ প্রদান।"
+        >
+          <button
+            onClick={fetchFeeData}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
+            <span>রিফ্রেশ তথ্য</span>
+          </button>
+        </AdminPageHeader>
 
         {/* ROLE BASED PERMISSION BANNER */}
         <div className={`p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-3 text-xs ${

@@ -52,7 +52,7 @@ const MarksheetLayout = ({
                                 className="w-full h-full object-contain"
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
-                                    e.currentTarget.src = `${api.defaults.baseURL}/uploads/admin/default.png`;
+                                    e.currentTarget.src = "/logo.png";
                                 }}
                             />
                         </div>
@@ -155,7 +155,7 @@ const MarksheetLayout = ({
                     <div className="flex justify-center items-center">
                         <div className="w-[100px] h-[115px] border-2 border-slate-700 p-0.5 rounded shadow-sm bg-white overflow-hidden">
                             <img
-                                src={`${api.defaults.baseURL}/uploads/students/${marksheet?.marks?.[0]?.profilepic}`}
+                                src={marksheet?.marks?.[0]?.profilepic?.startsWith("http") ? marksheet.marks[0].profilepic : `${api.defaults.baseURL}/uploads/students/${marksheet?.marks?.[0]?.profilepic}`}
                                 alt="Student"
                                 className="w-full h-full object-cover"
                                 onError={(e) => {

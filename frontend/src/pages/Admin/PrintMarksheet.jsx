@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 import api from "../../utils/api";
 import MarksheetLayout from "./MarksheetLayout";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
     FileText,
     Filter,
@@ -210,28 +211,19 @@ const PrintMarksheet = () => {
 
     /* ================= RENDER: INDIGO UI ================= */
     return (
-        <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans">
-
-            {/* PLATFORM HEADER */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-500/20">
-                            <Printer className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">Marksheet Console</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">Certification Module</p>
-                        </div>
-                    </div>
-                    <button onClick={handleReset} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">
-                        <RotateCcw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Reset Form</span>
+        <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-16">
+            <main className={`flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 pb-12 pt-6`}>
+                <AdminPageHeader
+                    badge="একাডেমিক মূল্যায়ন • মার্কশিট কনসোল"
+                    badgeIcon={Printer}
+                    title="একাডেমিক নম্বরপত্র প্রিন্ট (Print Marksheet)"
+                    subtitle="ছাত্রীদের বিষয়ভিত্তিক গ্রেডশিট, জিপিএ ও অফিসিয়াল প্রাতিষ্ঠানিক মার্কশিট সরাসরি তৈরি ও প্রিন্ট করুন।"
+                >
+                    <button onClick={handleReset} className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer">
+                        <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
+                        <span>রিসেট ফরম</span>
                     </button>
-                </div>
-            </header>
-
-            {/* MAIN CONTAINER: Optimized spacing to prevent "Slide Down" */}
-            <main className={`flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 pb-12 ${marksheet ? 'pt-4' : 'pt-8'}`}>
+                </AdminPageHeader>
 
                 {error && (
                     <div className="flex items-center gap-3 p-4 mb-6 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-900/20 rounded-xl text-red-600 dark:text-red-400 text-sm font-semibold">

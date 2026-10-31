@@ -81,7 +81,7 @@ const StudentProfile = () => {
                     <div className="flex flex-col sm:flex-row items-center gap-6">
                         <div className="relative">
                             <img
-                                src={student?.profilepic ? `${BASE_URL}/uploads/students/${student.profilepic}` : `${BASE_URL}/uploads/students/default.png`}
+                                src={student?.profilepic ? (student.profilepic.startsWith("http") ? student.profilepic : `${BASE_URL}/uploads/students/${student.profilepic}`) : `${BASE_URL}/uploads/students/default.png`}
                                 alt="Student"
                                 className="h-28 w-28 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"
                             />

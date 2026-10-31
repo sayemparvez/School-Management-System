@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../utils/api";
 import { 
   X, 
@@ -10,7 +11,8 @@ import {
   TrendingUp, 
   BarChart3,
   FileText,
-  UserCheck
+  UserCheck,
+  Edit3
 } from "lucide-react";
 
 export default function MarksReviewModal({ 
@@ -23,9 +25,20 @@ export default function MarksReviewModal({
   canApprove = false 
 }) {
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+
+  const handleGoToEdit = () => {
+    const isFaculty = location.pathname.startsWith("/faculty");
+    const targetUrl = isFaculty
+      ? `/faculty/enter-marks?course=${encodeURIComponent(course)}&sem=${encodeURIComponent(sem)}&subject=${encodeURIComponent(subject)}`
+      : `/admin/enter-marks?course=${encodeURIComponent(course)}&sem=${encodeURIComponent(sem)}&subject=${encodeURIComponent(subject)}`;
+    onClose();
+    navigate(targetUrl);
+  };
 
   useEffect(() => {
     if (!isOpen || !course || !sem || !subject) {
@@ -85,12 +98,23 @@ export default function MarksReviewModal({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGoToEdit}
+              className="px-3 py-1.5 text-xs font-bold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/70 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+              title="এই বিষয়ের নম্বর এন্ট্রি বা এডিট পেজে যান"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">নম্বর এডিট করুন (Edit Marks)</span>
+              <span className="sm:hidden">এডিট</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* MODAL BODY */}
@@ -271,6 +295,13 @@ export default function MarksReviewModal({
           </p>
 
           <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleGoToEdit}
+              className="px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>✏️ নম্বর পরিবর্তন / সংশোধন (Edit)</span>
+            </button>
             <button
               onClick={onClose}
               className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"

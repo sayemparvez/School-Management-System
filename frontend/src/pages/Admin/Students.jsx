@@ -4,6 +4,7 @@ import StudentProfile from "./StudentProfile";
 import ConfirmDeleteModal from "../../components/modals/ConfirmDeleteModal.jsx";
 import ImportStudentModal from "../../components/modals/ImportStudentModal.jsx";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
     Users,
     Search,
@@ -103,6 +104,11 @@ const Students = () => {
     /* ================= FILTER ================= */
 
     const filteredStudents = students.filter((student) => {
+        // Exclude graduated / alumni / inactive students (they belong to Ex-Students page)
+        if (student.is_alumni || Number(student.activestatus) === 0 || student.Courcecode === "ALUMNI") {
+            return false;
+        }
+
         const fullName = `${student.firstname} ${student.lastname || ""}`;
 
         const matchesSearch =
@@ -122,37 +128,24 @@ const Students = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-12">
-
-            {/* PLATFORM HEADER - GLASSMORPHISM */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-600 text-white rounded-lg shadow-md shadow-blue-500/20">
-                            <Users className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">Student Directory</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">User Management</p>
-                        </div>
-                    </div>
-
-                    {/* GLOBAL ACTIONS */}
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => setShowImportModal(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors active:scale-95">
-                            <UploadCloud className="w-4 h-4" />
-                            <span className="hidden sm:inline">Import Data</span>
-                        </button>
-                        <button onClick={() => { setIsNew(true); setSelectedStudent({}); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors shadow-sm shadow-blue-500/20 active:scale-95">
-                            <Plus className="w-4 h-4" />
-                            <span className="hidden sm:inline">Add Student</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
-
             <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6">
+                <AdminPageHeader
+                    badge="শিক্ষার্থী তথ্যভাণ্ডার • স্টুডেন্ট ডিরেক্টরি"
+                    badgeIcon={Users}
+                    title="শিক্ষার্থী তথ্য ব্যবস্থাপনা (Students Directory)"
+                    subtitle="ভর্তিকৃত সকল ছাত্রীর ব্যক্তিগত তথ্য, অভিভাবকের তথ্য, রোল ও উপবৃত্তি সংক্রান্ত যাবতীয় তথ্য পরিচালনা।"
+                >
+                    <button onClick={() => setShowImportModal(true)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer">
+                        <UploadCloud className="w-4 h-4 text-emerald-300" />
+                        <span>এক্সেল ইমপোর্ট</span>
+                    </button>
+                    <button onClick={() => { setIsNew(true); setSelectedStudent({}); }}
+                            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer">
+                        <Plus className="w-4 h-4" />
+                        <span>নতুন শিক্ষার্থী যোগ</span>
+                    </button>
+                </AdminPageHeader>
 
                 {/* ERROR STATE */}
                 {error && (
@@ -203,8 +196,8 @@ const Students = () => {
                             <tr>
                                 <th className="w-[15%] sm:w-[8%] px-2 sm:px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">DP</th>
                                 <th className="w-[55%] sm:w-[27%] px-2 sm:px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Student Profile</th>
-                                <th className="hidden md:table-cell w-[20%] px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Course Setup</th>
-                                <th className="hidden md:table-cell w-[10%] px-2 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Sem</th>
+                                <th className="hidden md:table-cell w-[20%] px-4 py-3.5 text-left text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">শ্রেণি / বিভাগ (Class)</th>
+                                <th className="hidden md:table-cell w-[10%] px-2 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">শিক্ষাবর্ষ (Session)</th>
                                 <th className="hidden sm:table-cell sm:w-[15%] px-4 py-3.5 text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
                                 <th className="w-[30%] sm:w-[20%] px-2 sm:px-4 py-3.5 text-right sm:text-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -239,7 +232,7 @@ const Students = () => {
                                     <tr key={student.sr_no} className={`${idx % 2 === 0 ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-slate-800/20'} hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-colors`}>
                                         <td className="w-[15%] sm:w-[8%] px-2 sm:px-4 py-3 text-center">
                                             <img
-                                                src={student.profilepic ? `${BASE_URL}/uploads/students/${student.profilepic}` : `${BASE_URL}/uploads/students/default.png`}
+                                                src={student.profilepic ? (student.profilepic.startsWith("http") ? student.profilepic : `${BASE_URL}/uploads/students/${student.profilepic}`) : `${BASE_URL}/uploads/students/default.png`}
                                                 alt="profile"
                                                 className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm mx-auto"
                                             />
@@ -256,16 +249,16 @@ const Students = () => {
 
                                         <td className="hidden md:table-cell w-[20%] px-4 py-3">
                                             <div className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
-                                                {student.Courcecode}
+                                                {courses.find((c) => c.course_code === (student.courcecode || student.Courcecode))?.course_name || student.courcecode || student.Courcecode || "General"}
                                             </div>
-                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                                                {courses.find((c) => c.course_code === student.Courcecode)?.course_name || "Unknown"}
+                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate font-mono">
+                                                {student.courcecode || student.Courcecode}
                                             </div>
                                         </td>
 
                                         <td className="hidden md:table-cell w-[10%] px-2 py-3 text-center">
-                                            <div className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
-                                                {student.semoryear}
+                                            <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-md inline-block">
+                                                {student.academic_year || "2026"}
                                             </div>
                                         </td>
 
@@ -284,13 +277,13 @@ const Students = () => {
                                         <td className="w-[30%] sm:w-[20%] px-2 sm:px-4 py-3 text-right sm:text-center">
                                             <div className="flex items-center justify-end sm:justify-center gap-1 sm:gap-2">
                                                 <button onClick={() => { setIsNew(false); setSelectedStudent(student); }}
-                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 rounded-lg transition-all flex items-center justify-center cursor-pointer active:scale-95"
                                                         title="Edit Student">
                                                     <Edit2 className="w-4 h-4" />
                                                     <span className="hidden xl:inline text-xs font-bold ml-2">Edit</span>
                                                 </button>
                                                 <button onClick={() => { setStudentToDelete(student.sr_no); setShowDeleteModal(true); }}
-                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-1.5 sm:px-3 sm:py-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-lg transition-all flex items-center justify-center cursor-pointer active:scale-95"
                                                         title="Delete Student">
                                                     <Trash2 className="w-4 h-4" />
                                                     <span className="hidden xl:inline text-xs font-bold ml-2">Delete</span>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../utils/api";
 import ConfirmSaveModal from "../../components/modals/ConfirmSaveModal";
 import MarksReviewModal from "../../components/modals/MarksReviewModal";
@@ -19,6 +20,7 @@ import {
 
 export default function FacultyEnterMarks() {
   const token = localStorage.getItem("token");
+  const [searchParams] = useSearchParams();
 
   const [assignedSubjects, setAssignedSubjects] = useState([]);
   const [students, setStudents] = useState([]);
@@ -39,6 +41,18 @@ export default function FacultyEnterMarks() {
   const [customSubjects, setCustomSubjects] = useState([]);
   const [customSubject, setCustomSubject] = useState("");
   const [showReviewModal, setShowReviewModal] = useState(false);
+
+  useEffect(() => {
+    const qCourse = searchParams.get("course");
+    const qSem = searchParams.get("sem");
+    const qSubject = searchParams.get("subject");
+    if (qCourse) {
+      setEntryMode("custom");
+      setCustomCourse(qCourse);
+      if (qSem) setCustomSem(qSem);
+      if (qSubject) setCustomSubject(qSubject);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchAssignedSubjects = async () => {
@@ -75,7 +89,10 @@ export default function FacultyEnterMarks() {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCustomSubjects(res.data || []);
-        if (res.data && res.data.length > 0) {
+        const qSub = searchParams.get("subject");
+        if (qSub && res.data && res.data.some(s => s.subjectcode === qSub)) {
+          setCustomSubject(qSub);
+        } else if (res.data && res.data.length > 0) {
           setCustomSubject(res.data[0].subjectcode);
         } else {
           setCustomSubject("");

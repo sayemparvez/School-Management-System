@@ -1,3 +1,21 @@
+import { LanguageProvider } from "./context/LanguageContext";
+import PublicLayout from "./pages/Public/PublicLayout";
+import HomePage from "./pages/Public/HomePage";
+import AtAGlancePage from "./pages/Public/AtAGlancePage";
+import HistoryPage from "./pages/Public/HistoryPage";
+import TeachersPage from "./pages/Public/TeachersPage";
+import StaffPage from "./pages/Public/StaffPage";
+import StudentStatisticsPage from "./pages/Public/StudentStatisticsPage";
+import StudentListPage from "./pages/Public/StudentListPage";
+import NoticesPage from "./pages/Public/NoticesPage";
+import ContactPage from "./pages/Public/ContactPage";
+import InternalResultsPage from "./pages/Public/InternalResultsPage";
+import PublicExamResultsPage from "./pages/Public/PublicExamResultsPage";
+import PrincipalMessagePage from "./pages/Public/PrincipalMessagePage";
+import ClassRoutinePage from "./pages/Public/ClassRoutinePage";
+import StudentFeesPage from "./pages/Public/StudentFeesPage";
+import CMSLogin from "./pages/CMS/CMSLogin";
+import CMSDashboard from "./pages/CMS/CMSDashboard";
 import {
     HashRouter as Router,
     Routes,
@@ -19,6 +37,7 @@ import Courses from "./pages/Admin/Courses";
 import Subjects from "./pages/Admin/Subjects";
 import AssignSubjects from "./pages/Admin/AssignSubjects";
 import Faculties from "./pages/Admin/Faculties.jsx";
+import StaffManagement from "./pages/Admin/StaffManagement.jsx";
 import Students from "./pages/Admin/Students.jsx";
 import ExStudents from "./pages/Admin/ExStudents.jsx";
 import PromoteStudents from "./pages/Admin/PromoteStudents.jsx";
@@ -34,6 +53,9 @@ import ClassTeachers from "./pages/Admin/ClassTeachers";
 import FeeStructure from "./pages/Admin/FeeStructure";
 import FeeCollection from "./pages/Admin/FeeCollection";
 import FeeReport from "./pages/Admin/FeeReport";
+import ManageAdmins from "./pages/Admin/ManageAdmins";
+import WebsiteCMS from "./pages/Admin/WebsiteCMS";
+import { CMSProvider } from "./context/CMSContext";
 
 import FacultyDashboard from "./pages/Faculty/FacultyDashboard";
 import FacultyLayout from "./pages/Faculty/FacultyLayout.jsx";
@@ -53,17 +75,23 @@ import StudentFees from "./pages/Student/StudentFees";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
-/* ===================== Route Tracker ===================== */
+/* ===================== Route Tracker & Auto Scroll To Top ===================== */
 
 const RouteTracker = () => {
     const location = useLocation();
     const token = localStorage.getItem("token");
 
+    // Automatically scroll to the very top whenever the route or page changes
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }, [location.pathname]);
+
     useEffect(() => {
         if (
             token &&
-            location.pathname !== "/" &&
-            location.pathname !== "/oauth-success"
+            (location.pathname.startsWith("/admin") ||
+             location.pathname.startsWith("/faculty") ||
+             location.pathname.startsWith("/student"))
         ) {
             localStorage.setItem("lastPage", location.pathname);
         }
@@ -84,9 +112,11 @@ const RootHandler = () => {
         return <Login />;
     }
 
-    // Logged in → go back to last visited page
+    // Logged in → go back to last visited page if valid for role
     if (lastPage) {
-        return <Navigate to={lastPage} replace />;
+        if (role === "admin" && lastPage.startsWith("/admin")) return <Navigate to={lastPage} replace />;
+        if (role === "faculty" && lastPage.startsWith("/faculty")) return <Navigate to={lastPage} replace />;
+        if (role === "student" && lastPage.startsWith("/student")) return <Navigate to={lastPage} replace />;
     }
 
     // Fallback by role
@@ -109,11 +139,38 @@ const RootHandler = () => {
 
 function App() {
     return (
+        <LanguageProvider>
+        <CMSProvider>
         <Router>
             <RouteTracker />
             <Routes>
                 {/* Root Route */}
-                <Route path="/" element={<RootHandler />} />
+                                {/* Public Website Routes */}
+                <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+                <Route path="/at-a-glance" element={<PublicLayout><AtAGlancePage /></PublicLayout>} />
+                <Route path="/history" element={<PublicLayout><HistoryPage /></PublicLayout>} />
+                <Route path="/committee" element={<PublicLayout><AtAGlancePage /></PublicLayout>} />
+                <Route path="/teachers" element={<PublicLayout><TeachersPage /></PublicLayout>} />
+                <Route path="/staff" element={<PublicLayout><StaffPage /></PublicLayout>} />
+                <Route path="/student-statistics" element={<PublicLayout><StudentStatisticsPage /></PublicLayout>} />
+                <Route path="/student-list" element={<PublicLayout><StudentListPage /></PublicLayout>} />
+                <Route path="/achievers" element={<PublicLayout><HomePage /></PublicLayout>} />
+                <Route path="/results/internal" element={<PublicLayout><InternalResultsPage /></PublicLayout>} />
+                <Route path="/results/public" element={<PublicLayout><PublicExamResultsPage /></PublicLayout>} />
+                <Route path="/notices" element={<PublicLayout><NoticesPage /></PublicLayout>} />
+                <Route path="/class-routine" element={<PublicLayout><ClassRoutinePage /></PublicLayout>} />
+                <Route path="/routine" element={<Navigate to="/class-routine" replace />} />
+                <Route path="/student-fees" element={<PublicLayout><StudentFeesPage /></PublicLayout>} />
+                <Route path="/fees" element={<Navigate to="/student-fees" replace />} />
+                <Route path="/contact" element={<PublicLayout><ContactPage /></PublicLayout>} />
+                <Route path="/principal-message" element={<PublicLayout><PrincipalMessagePage /></PublicLayout>} />
+                <Route path="/headmaster-message" element={<PublicLayout><PrincipalMessagePage /></PublicLayout>} />
+                <Route path="/portal" element={<RootHandler />} />
+
+                {/* Dedicated Website CMS Portal */}
+                <Route path="/cms/login" element={<CMSLogin />} />
+                <Route path="/cms/dashboard" element={<CMSDashboard />} />
+                <Route path="/cms" element={<Navigate to="/cms/dashboard" replace />} />
 
                 {/* Public / Auth */}
                 <Route path="/login" element={<Login />} />
@@ -136,7 +193,9 @@ function App() {
                     <Route path="courses" element={<Courses />} />
                     <Route path="subjects" element={<Subjects />} />
                     <Route path="assign-subjects" element={<AssignSubjects />} />
+                    <Route path="class-routine" element={<ClassRoutinePage isAdmin={true} />} />
                     <Route path="faculties" element={<Faculties />} />
+                    <Route path="staff" element={<StaffManagement />} />
                     <Route path="students" element={<Students />} />
                     <Route path="ex-students" element={<ExStudents />} />
                     <Route path="promote-students" element={<PromoteStudents />} />
@@ -152,6 +211,8 @@ function App() {
                     <Route path="fee-structure" element={<FeeStructure />} />
                     <Route path="fee-collection" element={<FeeCollection />} />
                     <Route path="fee-report" element={<FeeReport />} />
+                    <Route path="manage-admins" element={<ManageAdmins />} />
+                    <Route path="website-cms" element={<Navigate to="/cms/dashboard" replace />} />
                 </Route>
 
                 {/* ===================== Faculty ===================== */}
@@ -195,6 +256,8 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
+        </CMSProvider>
+    </LanguageProvider>
     );
 }
 

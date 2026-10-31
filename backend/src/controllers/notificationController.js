@@ -43,7 +43,7 @@ exports.getNotifications = async (req, res) => {
 
         // Query relevant notifications
         let query = `
-            SELECT sr_no, userprofile, courcecode, semoryear, userid, title, message, time, readby, created_at
+            SELECT sr_no, userprofile, courcecode, semoryear, userid, title, message, time, readby
             FROM notification
             WHERE (
                 userprofile = 'all' 
@@ -70,7 +70,7 @@ exports.getNotifications = async (req, res) => {
                 title: item.title,
                 message: item.message,
                 time: item.time,
-                createdAt: item.created_at,
+                createdAt: item.time,
                 isRead
             };
         });

@@ -18,16 +18,32 @@ const api = axios.create({
     withCredentials: true,
 });
 
+// Automatically attach Bearer token to all outgoing requests if token exists
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+        if (token && !config.headers.Authorization) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
-            // Token expired or invalid
-            const currentHash = window.location.hash;
-            if (currentHash !== "#/" && currentHash !== "" && currentHash !== "#/oauth-success") {
+            // NEVER redirect or clear session on login/auth requests or when already on login page
+            const requestUrl = error.config?.url || "";
+            const isAuthOrPublicRequest = requestUrl.includes("/api/auth/") || requestUrl.includes("/api/public/");
+            const currentHash = window.location.hash || "";
+            const isLoginPage = currentHash.startsWith("#/login");
+
+            if (!isAuthOrPublicRequest && !isLoginPage && currentHash !== "#/" && currentHash !== "" && currentHash !== "#/oauth-success") {
                 localStorage.removeItem("token");
                 localStorage.removeItem("role");
-                window.location.hash = "#/";
+                window.location.hash = "#/login";
             }
         }
         return Promise.reject(error);

@@ -20,12 +20,8 @@ const applyTheme = () => {
             document.documentElement.classList.remove("dark");
         }
     } else {
-        // Fallback to system preference
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-        if (prefersDark) {
-            document.documentElement.classList.add("dark");
-        }
+        // Default to Light mode on website
+        document.documentElement.classList.remove("dark");
     }
 };
 

@@ -4,6 +4,7 @@ const db = require("../config/db");
 const ExcelJS = require("exceljs");
 const XLSX = require("xlsx");
 const { createNotification } = require("./notificationController");
+const { calculateBangladeshResult, getBangladeshGrade } = require("../utils/bangladeshGrading");
 
 const isHeadTeacherOrAdmin = async (user) => {
     if (!user) return false;
@@ -936,6 +937,7 @@ exports.getStudentMarksheet = async (req, res) => {
                  s.profilepic,
                  m.subjectcode,
                  m.subjectname,
+                 sub.subjecttype,
                  sub.cq_max_marks,
                  sub.mcq_max_marks,
                  sub.theorymarks AS theoryfull,
@@ -978,77 +980,9 @@ exports.getStudentMarksheet = async (req, res) => {
 
         // ============================
         // Bangladesh NCTB Grading Logic
+        // Combined Bangla 1st+2nd, English 1st+2nd, and 4th/Optional subject bonus point
         // ============================
-
-        const getBangladeshGrade = (obtained, max) => {
-            if (!max || max <= 0) return { grade: "N/A", point: 0 };
-            const pct = (obtained / max) * 100;
-            if (pct >= 80) return { grade: "A+", point: 5.0 };
-            if (pct >= 70) return { grade: "A", point: 4.0 };
-            if (pct >= 60) return { grade: "A-", point: 3.5 };
-            if (pct >= 50) return { grade: "B", point: 3.0 };
-            if (pct >= 40) return { grade: "C", point: 2.0 };
-            if (pct >= 33) return { grade: "D", point: 1.0 };
-            return { grade: "F", point: 0.0 };
-        };
-
-        let totalObtained = 0;
-        let totalMaximum = 0;
-        let totalGradePoints = 0;
-        let hasFailed = false;
-
-        const processedRows = rows.map(r => {
-            const cq = Number(r.cq_marks) || 0;
-            const mcq = Number(r.mcq_marks) || 0;
-            const practical = Number(r.practicalmarks) || 0;
-            const theory = (r.cq_marks !== null || r.mcq_marks !== null) ? (cq + mcq) : (Number(r.theorymarks) || 0);
-
-            const theoryFull = Number(r.theoryfull) || 0;
-            const practicalFull = Number(r.practicalfull) || 0;
-
-            const subjectTotal = theory + practical;
-            const subjectMax = theoryFull + practicalFull;
-
-            totalObtained += subjectTotal;
-            totalMaximum += subjectMax;
-
-            const { grade, point } = getBangladeshGrade(subjectTotal, subjectMax);
-            if (grade === "F") {
-                hasFailed = true;
-            }
-            totalGradePoints += point;
-
-            return {
-                ...r,
-                cq_marks: cq,
-                mcq_marks: mcq,
-                theorymarks: theory,
-                practicalmarks: practical,
-                totalmarks: subjectTotal,
-                maxmarks: subjectMax,
-                grade,
-                gradepoint: point.toFixed(2)
-            };
-        });
-
-        const percentage = totalMaximum
-            ? Number(((totalObtained / totalMaximum) * 100).toFixed(2))
-            : 0;
-
-        const gpaVal = processedRows.length ? (totalGradePoints / processedRows.length) : 0;
-        const finalGpa = hasFailed ? "0.00" : gpaVal.toFixed(2);
-
-        let finalGrade = "F";
-        if (!hasFailed) {
-            if (gpaVal >= 5.0) finalGrade = "A+";
-            else if (gpaVal >= 4.0) finalGrade = "A";
-            else if (gpaVal >= 3.5) finalGrade = "A-";
-            else if (gpaVal >= 3.0) finalGrade = "B";
-            else if (gpaVal >= 2.0) finalGrade = "C";
-            else if (gpaVal >= 1.0) finalGrade = "D";
-        }
-
-        const result = hasFailed ? "FAILED" : "PASSED";
+        const { processedRows, summary } = calculateBangladeshResult(rows);
 
         // Determine Exam Name
         const isClass10 = String(course).toUpperCase().includes("10");
@@ -1062,15 +996,7 @@ exports.getStudentMarksheet = async (req, res) => {
             SchoolLogo,
             examName,
             marks: processedRows,
-            summary: {
-                totalObtained,
-                totalMaximum,
-                percentage,
-                gpa: finalGpa,
-                finalGrade,
-                division: hasFailed ? "FAILED" : (gpaVal >= 5.0 ? "Golden A+" : `GPA ${finalGpa}`),
-                result
-            }
+            summary
         });
 
     } catch (error) {

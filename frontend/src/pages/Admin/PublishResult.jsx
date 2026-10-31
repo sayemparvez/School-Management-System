@@ -3,6 +3,7 @@ import api from "../../utils/api";
 import Toast from "../../components/ui/Toast.jsx";
 import ConfirmSaveModal from "../../components/modals/ConfirmSaveModal.jsx";
 import MarksReviewModal from "../../components/modals/MarksReviewModal.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import { Eye } from "lucide-react";
 import {
     Award,
@@ -138,34 +139,21 @@ export default function PublishResult() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16">
-            
-            {/* HEADER */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-600 text-white rounded-lg shadow-md shadow-emerald-500/20">
-                            <Award className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">
-                                Result Approval & Publication
-                            </h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
-                                প্রধান শিক্ষক ও অ্যাডমিন অনুমোদন পোর্টাল • ফলাফল প্রকাশ
-                            </p>
-                        </div>
-                    </div>
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+                <AdminPageHeader
+                    badge="পরীক্ষা নিয়ন্ত্রণ • ফলাফল অনুমোদন ও প্রকাশ"
+                    badgeIcon={Award}
+                    title="একাডেমিক ফলাফল প্রকাশ (Publish Result)"
+                    subtitle="প্রধান শিক্ষক ও অ্যাডমিন অনুমোদন পোর্টাল • গ্রেডিং সিস্টেম অনুযায়ী ফলাফল অনুমোদন ও ওয়েবসাইটে উন্মুক্তকরণ।"
+                >
                     <button
                         onClick={fetchStatus}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                        className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer"
                     >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Refresh Status</span>
+                        <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
+                        <span>রিফ্রেশ স্ট্যাটাস</span>
                     </button>
-                </div>
-            </header>
-
-            <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6">
+                </AdminPageHeader>
 
                 {/* Workflow Guidance Banner */}
                 <div className="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/40 rounded-2xl p-4 flex items-start gap-3 text-xs text-indigo-900 dark:text-indigo-300">
@@ -228,11 +216,17 @@ export default function PublishResult() {
                                 onChange={(e) => setSelectedSem(e.target.value)}
                                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer font-semibold"
                             >
-                                {semesterOptions.map((s) => (
-                                    <option key={s} value={s}>
-                                        {s === 1 ? "1st Term / Half Yearly (অর্ধ-বার্ষিক পরীক্ষা)" : "2nd Term / Final (বার্ষিক পরীক্ষা)"}
-                                    </option>
-                                ))}
+                                {semesterOptions.map((s) => {
+                                    const isClass10 = String(selectedCourse || "").toUpperCase().includes("10");
+                                    const label = isClass10
+                                        ? (s === 1 ? "প্রাক-নির্বাচনী পরীক্ষা (Pre-Test Exam)" : "নির্বাচনী পরীক্ষা (Test Exam)")
+                                        : (s === 1 ? "অর্ধবার্ষিক পরীক্ষা (Half-Yearly Exam)" : "বার্ষিক পরীক্ষা (Annual Final Exam)");
+                                    return (
+                                        <option key={s} value={s}>
+                                            {label}
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </div>
                     </div>
@@ -277,7 +271,11 @@ export default function PublishResult() {
                                 </div>
 
                                 <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">
-                                    {selectedCourseObj?.course_name || selectedCourse} — {Number(selectedSem) === 1 ? "অর্ধ-বার্ষিক পরীক্ষা" : "বার্ষিক পরীক্ষা"}
+                                    {selectedCourseObj?.course_name || selectedCourse} — {
+                                        String(selectedCourse || "").toUpperCase().includes("10")
+                                            ? (Number(selectedSem) === 1 ? "প্রাক-নির্বাচনী পরীক্ষা (Pre-Test)" : "নির্বাচনী পরীক্ষা (Test Exam)")
+                                            : (Number(selectedSem) === 1 ? "অর্ধবার্ষিক পরীক্ষা (Half-Yearly)" : "বার্ষিক পরীক্ষা (Annual Final)")
+                                    }
                                 </h3>
 
                                 <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 dark:text-slate-400 font-medium">

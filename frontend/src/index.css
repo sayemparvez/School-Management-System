@@ -2,27 +2,94 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+button, [role="button"], select, summary {
+    cursor: pointer;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 @page {
-    size: A4;
-    margin: 0;
+    size: A4 portrait;
+    margin: 6mm 8mm;
 }
 
 @media print {
-
-    body * {
-        visibility: hidden;
+    html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
     }
 
-    #marksheet, #marksheet * {
-        visibility: visible;
+    /* Completely eliminate non-printable layout elements from flow to prevent blank pages */
+    header,
+    footer,
+    nav,
+    aside,
+    .print\:hidden,
+    .no-print {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
     }
 
-    #marksheet {
-        position: fixed;
-        top: 0;
-        left: 0;
+    /* Collapse parents to prevent multi-page spill / trailing blank pages */
+    .min-h-screen {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+    .space-y-8, .space-y-6 {
+        space-y: 0 !important;
+    }
+    .space-y-8 > :not([hidden]) ~ :not([hidden]),
+    .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 0 !important;
+    }
+    .max-w-7xl {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .grid {
+        display: block !important;
+    }
+    .lg\:col-span-8 {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
+    /* Force clean placement of marksheet on single page */
+    #marksheet,
+    #printable-marksheet {
+        position: relative !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: 2px solid #047857 !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-before: avoid !important;
+        break-after: avoid !important;
+        break-inside: avoid !important;
+    }
 }
 
 /* Hide scrollbar (mobile + desktop safe) */
@@ -38,3 +105,345 @@ html, body {
 *::-webkit-scrollbar {
     display: none;
 }
+
+/* ==========================================================
+   Website CMS Studio - Light Mode Styling Suite
+   ========================================================== */
+.cms-light {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+.cms-light header {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.cms-light header h1,
+.cms-light header .text-white {
+    color: #0f172a !important;
+}
+
+.cms-light header p {
+    color: #475569 !important;
+}
+
+.cms-light header .text-emerald-400,
+.cms-light header .text-emerald-300 {
+    color: #065f46 !important;
+}
+
+.cms-light header .text-indigo-300,
+.cms-light header .text-indigo-400 {
+    color: #3730a3 !important;
+}
+
+.cms-light aside {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04) !important;
+}
+
+.cms-light aside button:not(.bg-gradient-to-r) {
+    color: #334155 !important;
+}
+
+.cms-light aside button:not(.bg-gradient-to-r):hover {
+    background-color: #f1f5f9 !important;
+}
+
+.cms-light .bg-slate-900,
+.cms-light .bg-slate-900\/90,
+.cms-light .bg-slate-900\/80 {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.cms-light .bg-slate-950,
+.cms-light .bg-slate-950\/80 {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+.cms-light .bg-slate-800,
+.cms-light .bg-slate-800\/80,
+.cms-light .bg-slate-800\/70,
+.cms-light .bg-slate-800\/60 {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+.cms-light .border-slate-800,
+.cms-light .border-slate-700,
+.cms-light .border-slate-800\/80 {
+    border-color: #e2e8f0 !important;
+}
+
+/* Light Mode Text Colors (Targeted specifically to light cards) */
+.cms-light h1:not(.cms-welcome-banner *),
+.cms-light h2:not(.cms-welcome-banner *),
+.cms-light h3:not(.cms-welcome-banner *),
+.cms-light h4:not(.cms-welcome-banner *),
+.cms-light h5:not(.cms-welcome-banner *) {
+    color: #0f172a !important;
+}
+
+.cms-light .bg-slate-900:not(.cms-welcome-banner) .text-white,
+.cms-light .bg-slate-950:not(.cms-welcome-banner) .text-white,
+.cms-light .bg-slate-800:not(.cms-welcome-banner) .text-white,
+.cms-light .bg-white .text-white {
+    color: #0f172a !important;
+}
+
+.cms-light .bg-slate-900:not(.cms-welcome-banner) .text-slate-400,
+.cms-light .bg-slate-950:not(.cms-welcome-banner) .text-slate-400,
+.cms-light .bg-slate-800:not(.cms-welcome-banner) .text-slate-400 {
+    color: #475569 !important;
+}
+
+.cms-light .bg-slate-900:not(.cms-welcome-banner) .text-slate-300,
+.cms-light .bg-slate-950:not(.cms-welcome-banner) .text-slate-300,
+.cms-light .bg-slate-800:not(.cms-welcome-banner) .text-slate-300 {
+    color: #334155 !important;
+}
+
+/* Executive Welcome Banner & Dark Gradient Container Text Protection in Light Mode */
+.cms-light .cms-welcome-banner,
+.cms-light [class*="from-emerald-950"] {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0f172a 100%) !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 20px 25px -5px rgba(6, 78, 59, 0.15) !important;
+}
+
+.cms-light .cms-welcome-banner h2,
+.cms-light .cms-welcome-banner h2 *,
+.cms-light [class*="from-emerald-950"] h2,
+.cms-light [class*="from-emerald-950"] h2 * {
+    color: #ffffff !important;
+}
+
+.cms-light .cms-welcome-banner h2 span,
+.cms-light [class*="from-emerald-950"] h2 span {
+    color: #a7f3d0 !important;
+    background: none !important;
+    -webkit-text-fill-color: #a7f3d0 !important;
+}
+
+.cms-light .cms-welcome-banner p,
+.cms-light [class*="from-emerald-950"] p,
+.cms-light .cms-welcome-banner .text-slate-300,
+.cms-light [class*="from-emerald-950"] .text-slate-300,
+.cms-light .cms-welcome-banner .text-slate-200 {
+    color: #e2e8f0 !important;
+}
+
+.cms-light .cms-welcome-banner .text-emerald-300,
+.cms-light [class*="from-emerald-950"] .text-emerald-300 {
+    color: #6ee7b7 !important;
+}
+
+.cms-light .cms-welcome-banner .text-slate-400,
+.cms-light [class*="from-emerald-950"] .text-slate-400 {
+    color: #cbd5e1 !important;
+}
+
+/* Welcome Banner Badges Protection in Light Mode */
+.cms-light .cms-welcome-banner .cms-badge,
+.cms-light .cms-welcome-banner [class*="bg-black"],
+.cms-light .cms-welcome-banner [class*="bg-emerald-950"] {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(52, 211, 153, 0.35) !important;
+    color: #ffffff !important;
+}
+
+.cms-light .cms-welcome-banner .cms-badge span,
+.cms-light .cms-welcome-banner [class*="bg-black"] span,
+.cms-light .cms-welcome-banner [class*="bg-emerald-950"] span {
+    color: #ffffff !important;
+}
+
+/* Universal High-Contrast Rules for CMS Studio Light Mode */
+.cms-light label {
+    color: #1e293b !important;
+    font-weight: 700 !important;
+}
+
+.cms-light .text-slate-400:not(.cms-welcome-banner *) {
+    color: #475569 !important;
+}
+
+.cms-light .text-slate-300:not(.cms-welcome-banner *) {
+    color: #334155 !important;
+}
+
+.cms-light .text-slate-200:not(.cms-welcome-banner *) {
+    color: #1e293b !important;
+}
+
+.cms-light .bg-emerald-950:not(.cms-welcome-banner *) {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+    border-color: #a7f3d0 !important;
+}
+
+.cms-light .bg-emerald-950:not(.cms-welcome-banner *) span,
+.cms-light .bg-emerald-950:not(.cms-welcome-banner *) * {
+    color: #065f46 !important;
+}
+
+.cms-light .bg-red-950\/40 {
+    background-color: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+}
+
+.cms-light .bg-red-950\/40 * {
+    color: #b91c1c !important;
+}
+
+/* Modern Hover Animations & Micro-Interactions */
+.cms-interactive-hover {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
+}
+
+.cms-interactive-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15) !important;
+}
+
+.cms-light input,
+.cms-light select,
+.cms-light textarea {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+.cms-light input:focus,
+.cms-light select:focus,
+.cms-light textarea:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15) !important;
+}
+
+.cms-light input::placeholder,
+.cms-light textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* Ensure vibrant colored badges and buttons retain white text */
+.cms-light .bg-emerald-600,
+.cms-light .bg-emerald-600 *,
+.cms-light .bg-emerald-500,
+.cms-light .bg-emerald-500 *,
+.cms-light .bg-red-600,
+.cms-light .bg-red-600 *,
+.cms-light .bg-teal-600,
+.cms-light .bg-teal-600 *,
+.cms-light .bg-indigo-600,
+.cms-light .bg-indigo-600 * {
+    color: #ffffff !important;
+}
+
+/* Professional Hero Carousel Animations - Advance Cinematic Level */
+@keyframes heroSlideBadge {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroSlideTitle {
+    0% {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes heroSlideDesc {
+    0% {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroSlideActions {
+    0% {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.hero-animate-badge {
+    animation: heroSlideBadge 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hero-animate-title {
+    animation: heroSlideTitle 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+    opacity: 0;
+}
+
+.hero-animate-desc {
+    animation: heroSlideDesc 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.22s forwards;
+    opacity: 0;
+}
+
+.hero-animate-actions {
+    animation: heroSlideActions 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.32s forwards;
+    opacity: 0;
+}
+
+@keyframes kenBurnsSlow {
+    0% {
+        transform: scale(1.0) translate(0, 0);
+    }
+    50% {
+        transform: scale(1.07) translate(-1%, -0.5%);
+    }
+    100% {
+        transform: scale(1.14) translate(-2%, 0);
+    }
+}
+
+.hero-ken-burns {
+    animation: kenBurnsSlow 9s ease-out forwards;
+}
+
+@keyframes heroProgressTimer {
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+.hero-progress-bar {
+    animation: heroProgressTimer 6s linear infinite;
+}
+
+.hero-progress-paused {
+    animation-play-state: paused !important;
+}
+
+

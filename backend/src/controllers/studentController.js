@@ -4,6 +4,7 @@ const XLSX = require("xlsx");
 const path = require("path");
 const fs = require("fs");
 const ExcelJS = require("exceljs");
+const { uploadFileToCloudinary } = require("../config/cloudinary");
 
 // ============================
 // Get Student Profile
@@ -24,7 +25,12 @@ exports.getStudentProfile = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    res.json(rows[0]);
+    const student = rows[0];
+    if (student && (!student.profilepic || !student.profilepic.startsWith("http"))) {
+      student.profilepic = getStudentImage(student.rollnumber);
+    }
+
+    res.json(student);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching profile" });
@@ -110,15 +116,21 @@ const getStudentImage = (rollnumber) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const result = await db.query(
-        `SELECT * FROM students ORDER BY sr_no DESC`
-    );
+    const { include_alumni } = req.query;
+    let query = `SELECT * FROM students`;
+    if (include_alumni !== "true") {
+      query += ` WHERE (is_alumni = false OR is_alumni IS NULL) AND (activestatus = 1 OR activestatus IS NULL) AND (Courcecode != 'ALUMNI' OR Courcecode IS NULL)`;
+    }
+    query += ` ORDER BY sr_no DESC`;
+    const result = await db.query(query);
 
     const rows = result.rows;
 
     const updatedStudents = rows.map((student) => ({
       ...student,
-      profilepic: getStudentImage(student.rollnumber),
+      profilepic: (student.profilepic && (student.profilepic.startsWith("http://") || student.profilepic.startsWith("https://")))
+        ? student.profilepic
+        : getStudentImage(student.rollnumber),
     }));
 
     res.json(updatedStudents);
@@ -136,6 +148,7 @@ exports.createStudent = async (req, res) => {
   try {
     const {
       fullname,
+      name_bn,
       rollnumber,
       emailid,
       contactnumber,
@@ -144,8 +157,10 @@ exports.createStudent = async (req, res) => {
       state,
       city,
       fathername,
+      fathername_bn,
       fatheroccupation,
       mothername,
+      mothername_bn,
       motheroccupation,
       Courcecode,
       semoryear,
@@ -156,14 +171,20 @@ exports.createStudent = async (req, res) => {
 
     if (
         !fullname ||
+        !name_bn ||
         !rollnumber ||
         !contactnumber ||
         !dateofbirth ||
-        !gender ||
-        !Courcecode ||
-        !semoryear
+        !fathername ||
+        !mothername ||
+        !Courcecode
     ) {
-      return res.status(400).json({ message: "Required fields missing" });
+      return res.status(400).json({ message: "শিক্ষার্থীর ইংরেজি ও বাংলা নাম, রোল নম্বর, মোবাইল, জন্মতারিখ এবং পিতা-মাতার ইংরেজি নাম আবশ্যক।" });
+    }
+
+    const isClass9Or10 = String(Courcecode).includes("9") || String(Courcecode).includes("10");
+    if (isClass9Or10 && (!optionalsubject || !optionalsubject.trim())) {
+      return res.status(400).json({ message: "৯ম ও ১০ম শ্রেণির শিক্ষার্থীদের জন্য ৪র্থ/ঐচ্ছিক বিষয় (Optional Subject) নির্বাচন করা বাধ্যতামূলক।" });
     }
 
     const nameParts = fullname.trim().split(" ");
@@ -185,40 +206,54 @@ exports.createStudent = async (req, res) => {
       }
     }
 
-    const finalPassword = password || dateofbirth;
+    // Default password = @Student123@ if blank
+    const finalPassword = (password && password.trim() !== "") ? password.trim() : "@Student123@";
     const hashedPassword = await bcrypt.hash(finalPassword, 10);
 
-    const profilepic = req.file ? req.file.filename : null;
+    let profilepic = null;
+    if (req.file) {
+      const cloudUrl = await uploadFileToCloudinary(req.file.path, "students");
+      profilepic = cloudUrl || req.file.filename;
+    }
+
+    const effectiveAcademicYear = req.body.academic_year || (semoryear && Number(semoryear) > 100 ? String(semoryear) : "2026");
+    const effectiveSemOrYear = (semoryear && Number(semoryear) > 100) ? 1 : (Number(semoryear) || 1);
 
     await db.query(
         `INSERT INTO students
          (Courcecode, semoryear, rollnumber, optionalsubject, firstname, lastname, emailid,
           contactnumber, dateofbirth, gender, state, city,
           fathername, fatheroccupation, mothername, motheroccupation,
-          profilepic, password, activestatus, admissiondate)
+          profilepic, password, activestatus, admissiondate, academic_year,
+          name_bn, fathername_bn, mothername_bn)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                 $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
+                 $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
+                 $22, $23, $24)`,
         [
           Courcecode,
-          semoryear,
+          effectiveSemOrYear,
           rollnumber,
-          optionalsubject || null,
+          isClass9Or10 ? (optionalsubject || null) : null,
           firstname,
           lastname,
           cleanEmail,
           contactnumber,
           dateofbirth,
-          gender,
-          state,
-          city,
-          fathername || null,
+          gender || "Female",
+          state || "Rangpur",
+          city || "Nilphamari",
+          fathername.trim(),
           fatheroccupation || null,
-          mothername || null,
+          mothername.trim(),
           motheroccupation || null,
           profilepic,
           hashedPassword,
           0,
-          admissiondate || null
+          admissiondate || null,
+          effectiveAcademicYear,
+          name_bn ? name_bn.trim() : null,
+          fathername_bn ? fathername_bn.trim() : null,
+          mothername_bn ? mothername_bn.trim() : null
         ]
     );
 
@@ -240,6 +275,7 @@ exports.updateStudent = async (req, res) => {
 
     const {
       fullname,
+      name_bn,
       rollnumber,
       emailid,
       contactnumber,
@@ -248,8 +284,10 @@ exports.updateStudent = async (req, res) => {
       state,
       city,
       fathername,
+      fathername_bn,
       fatheroccupation,
       mothername,
+      mothername_bn,
       motheroccupation,
       Courcecode,
       semoryear,
@@ -259,7 +297,7 @@ exports.updateStudent = async (req, res) => {
       activestatus
     } = req.body;
 
-    const nameParts = fullname.trim().split(" ");
+    const nameParts = fullname ? fullname.trim().split(" ") : [""];
     const firstname = nameParts[0];
     const lastname = nameParts.slice(1).join(" ") || "";
 
@@ -273,6 +311,11 @@ exports.updateStudent = async (req, res) => {
         return res.status(400).json({ message: "Email already exists" });
       }
     }
+
+    const isClass9Or10 = String(Courcecode).includes("9") || String(Courcecode).includes("10");
+
+    const effectiveAcademicYear = req.body.academic_year || (semoryear && Number(semoryear) > 100 ? String(semoryear) : undefined);
+    const effectiveSemOrYear = (semoryear && Number(semoryear) > 100) ? 1 : (Number(semoryear) || 1);
 
     let updateQuery = `
       UPDATE students SET
@@ -293,28 +336,36 @@ exports.updateStudent = async (req, res) => {
                         mothername = $15,
                         motheroccupation = $16,
                         admissiondate = $17,
-                        activestatus = $18
+                        activestatus = $18,
+                        academic_year = COALESCE($19, academic_year, '2026'),
+                        name_bn = COALESCE($20, name_bn),
+                        fathername_bn = COALESCE($21, fathername_bn),
+                        mothername_bn = COALESCE($22, mothername_bn)
     `;
 
     const values = [
       Courcecode,
-      semoryear,
+      effectiveSemOrYear,
       rollnumber,
-      optionalsubject || null,
+      isClass9Or10 ? (optionalsubject || null) : null,
       firstname,
       lastname,
       cleanEmail,
       contactnumber,
       dateofbirth,
-      gender,
-      state,
-      city,
-      fathername || null,
+      gender || "Female",
+      state || "Rangpur",
+      city || "Nilphamari",
+      fathername ? fathername.trim() : null,
       fatheroccupation || null,
-      mothername || null,
+      mothername ? mothername.trim() : null,
       motheroccupation || null,
       admissiondate || null,
-      activestatus
+      activestatus,
+      effectiveAcademicYear || null,
+      name_bn ? name_bn.trim() : null,
+      fathername_bn ? fathername_bn.trim() : null,
+      mothername_bn ? mothername_bn.trim() : null
     ];
 
     if (password) {
@@ -324,7 +375,8 @@ exports.updateStudent = async (req, res) => {
     }
 
     if (req.file) {
-      values.push(req.file.filename);
+      const cloudUrl = await uploadFileToCloudinary(req.file.path, "students");
+      values.push(cloudUrl || req.file.filename);
       updateQuery += `, profilepic = $${values.length}`;
     }
 

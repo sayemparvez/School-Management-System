@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import api from "../../utils/api";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import {
     GraduationCap,
     Search,
@@ -201,53 +202,38 @@ export default function ExStudents() {
 
     return (
         <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-16">
-            
-            {/* STICKY HEADER */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm print:hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-tr from-amber-600 to-amber-500 text-white rounded-xl shadow-md shadow-amber-500/20">
-                            <GraduationCap className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-base sm:text-lg font-bold tracking-tight leading-tight">
-                                প্রাক্তন শিক্ষার্থী আর্কাইভ (Ex-Students / SSC Alumni)
-                            </h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
-                                ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয় • এসএসসি উত্তীর্ণদের স্থায়ী তথ্যভাণ্ডার
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => {
-                                setFormData({
-                                    rollnumber: "",
-                                    firstname: "",
-                                    lastname: "",
-                                    courcecode: "CLASS-10-SCI",
-                                    ssc_passing_year: selectedYear || "2025",
-                                    ssc_board_roll: "",
-                                    ssc_reg_no: "",
-                                    ssc_gpa: "",
-                                    fathername: "",
-                                    mothername: "",
-                                    contactnumber: "",
-                                    city: "ডিমলা, নীলফামারী",
-                                    gender: "Female"
-                                });
-                                setShowAddModal(true);
-                            }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 active:scale-95 rounded-xl shadow-md shadow-amber-500/20 transition-all cursor-pointer"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span>প্রাক্তন শিক্ষার্থী যোগ করুন</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
-
             <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6 w-full print:p-0 print:m-0">
+                <AdminPageHeader
+                    badge="প্রাক্তন শিক্ষার্থী • এসএসসি অ্যালামনাই আর্কাইভ"
+                    badgeIcon={GraduationCap}
+                    title="প্রাক্তন শিক্ষার্থী রেকর্ড (Alumni Students)"
+                    subtitle="ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয় হতে বিগত শিক্ষাবর্ষসমূহে এসএসসি উত্তীর্ণদের স্থায়ী ডিজিটাল তথ্যভাণ্ডার।"
+                >
+                    <button
+                        onClick={() => {
+                            setFormData({
+                                rollnumber: "",
+                                firstname: "",
+                                lastname: "",
+                                courcecode: "CLASS-10-SCI",
+                                ssc_passing_year: selectedYear || "2025",
+                                ssc_board_roll: "",
+                                ssc_reg_no: "",
+                                ssc_gpa: "",
+                                fathername: "",
+                                mothername: "",
+                                contactnumber: "",
+                                city: "ডিমলা, নীলফামারী",
+                                gender: "Female"
+                            });
+                            setShowAddModal(true);
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-900 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>প্রাক্তন শিক্ষার্থী যোগ করুন</span>
+                    </button>
+                </AdminPageHeader>
 
                 {/* STATS CARDS */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 print:hidden">
@@ -894,19 +880,29 @@ export default function ExStudents() {
                         </div>
 
                         {/* Printable Testimonial Document Layout */}
-                        <div className="border-4 border-double border-amber-900/30 p-6 sm:p-8 rounded-xl bg-amber-50/20 font-serif relative">
+                        <div className="border-4 border-double border-amber-900/30 p-6 sm:p-8 rounded-xl bg-amber-50/20 font-serif relative overflow-hidden">
                             
                             {/* Watermark / Logo background */}
-                            <div className="text-center space-y-1 mb-6 border-b-2 border-amber-900/20 pb-4">
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] select-none">
+                                <img src="/logo.png" alt="School Seal Watermark" className="w-80 h-80 object-contain" />
+                            </div>
+
+                            {/* Header with Official Seal */}
+                            <div className="text-center space-y-1 mb-6 border-b-2 border-amber-900/20 pb-4 relative z-10">
+                                <div className="flex justify-center mb-2">
+                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden p-0.5 border-2 border-amber-800/40 bg-white shadow-sm flex items-center justify-center">
+                                        <img src="/logo.png" alt="ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়" className="w-full h-full object-contain" />
+                                    </div>
+                                </div>
                                 <p className="text-[11px] font-sans font-bold tracking-widest text-slate-600 uppercase">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার</p>
                                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-wide font-sans">
                                     ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়
                                 </h2>
                                 <p className="text-xs text-slate-700 font-sans">
-                                    ডাকঘর ও উপজেলা: ডিমলা, জেলা: নীলফামারী • স্থাপিত: ১৯৫২ খ্রিঃ
+                                    ডাকঘর ও উপজেলা: ডিমলা, জেলা: নীলফামারী • স্থাপিত: ১৯৬৭ খ্রিঃ
                                 </p>
-                                <div className="text-[11px] font-mono text-slate-600 flex justify-center gap-4 pt-1">
-                                    <span>EIIN: 127756</span>
+                                <div className="text-[11px] font-mono text-slate-600 flex justify-center gap-4 pt-1 font-semibold">
+                                    <span>EIIN: ১২৪৭৫৪</span>
                                     <span>•</span>
                                     <span>বিদ্যালয় কোড: ৭৫০৫</span>
                                 </div>

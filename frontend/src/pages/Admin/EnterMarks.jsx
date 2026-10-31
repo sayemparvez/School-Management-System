@@ -1,14 +1,17 @@
 import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../utils/api";
 import ConfirmSaveModal from "../../components/modals/ConfirmSaveModal.jsx";
 import MarksReviewModal from "../../components/modals/MarksReviewModal.jsx";
 import { Eye } from "lucide-react";
 import Toast from "../../components/ui/Toast.jsx";
+import AdminPageHeader from "../../components/ui/AdminPageHeader.jsx";
 import { calculateNCTBGrade, getExamShortName } from "../../utils/academicHelper.js";
 import { GraduationCap, Filter, ListChecks, Save, RotateCcw, CheckCircle2, AlertCircle } from "lucide-react";
 
 const EnterMarks = () => {
     const token = localStorage.getItem("token");
+    const [searchParams] = useSearchParams();
 
     const [courses, setCourses] = useState([]);
     const [subjects, setSubjects] = useState([]);
@@ -25,6 +28,14 @@ const EnterMarks = () => {
     const [toast, setToast] = useState(null);
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [showReviewModal, setShowReviewModal] = useState(false);
+
+    // Sync from URL query params (e.g. from MarksReviewModal edit button)
+    useEffect(() => {
+        const qCourse = searchParams.get("course");
+        const qSem = searchParams.get("sem");
+        if (qCourse) setSelectedCourse(qCourse);
+        if (qSem) setSelectedSem(qSem);
+    }, [searchParams]);
 
     /* ================= ACTION: RESET ================= */
     const handleReset = () => {
@@ -80,26 +91,14 @@ const EnterMarks = () => {
         ];
     }, [selectedCourse, isClass10]);
 
-    useEffect(() => {
-        if (!selectedCourse || !selectedSem) return;
-        const loadSubjects = async () => {
-            try {
-                const res = await api.get(`/api/subjects?course_code=${selectedCourse}&sem=${selectedSem}`, { headers: { Authorization: `Bearer ${token}` } });
-                setSubjects(res.data || []);
-                setStudents([]); setMarks({}); setSelectedSubject(""); setSubjectDetails(null);
-            } catch { setError("Failed to load subjects."); }
-        };
-        loadSubjects();
-    }, [selectedCourse, selectedSem, token]);
-
-    const handleSubjectChange = async (code) => {
+    const loadSubjectMarks = async (code, subjectList = subjects, course = selectedCourse, sem = selectedSem) => {
         setSelectedSubject(code);
-        const subject = subjects.find(s => s.subjectcode === code);
+        const subject = subjectList.find(s => s.subjectcode === code);
         setSubjectDetails(subject);
         setMarks({});
 
         try {
-            const res = await api.get(`/api/marks/students?course=${selectedCourse}&sem=${selectedSem}&subject=${code}`, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await api.get(`/api/marks/students?course=${course}&sem=${sem}&subject=${code}`, { headers: { Authorization: `Bearer ${token}` } });
             setStudents(res.data || []);
             const initialMarks = {};
             (res.data || []).forEach(student => {
@@ -112,6 +111,29 @@ const EnterMarks = () => {
             });
             setMarks(initialMarks);
         } catch { setError("Failed to load students."); }
+    };
+
+    useEffect(() => {
+        if (!selectedCourse || !selectedSem) return;
+        const loadSubjects = async () => {
+            try {
+                const res = await api.get(`/api/subjects?course_code=${selectedCourse}&sem=${selectedSem}`, { headers: { Authorization: `Bearer ${token}` } });
+                const list = res.data || [];
+                setSubjects(list);
+
+                const qSubject = searchParams.get("subject");
+                if (qSubject && list.some(s => s.subjectcode === qSubject)) {
+                    loadSubjectMarks(qSubject, list, selectedCourse, selectedSem);
+                } else {
+                    setStudents([]); setMarks({}); setSelectedSubject(""); setSubjectDetails(null);
+                }
+            } catch { setError("Failed to load subjects."); }
+        };
+        loadSubjects();
+    }, [selectedCourse, selectedSem, token]);
+
+    const handleSubjectChange = (code) => {
+        loadSubjectMarks(code, subjects, selectedCourse, selectedSem);
     };
 
     const handleMarkChange = (roll, field, value) => {
@@ -190,28 +212,19 @@ const EnterMarks = () => {
     const maxTotal = theoryMax + practicalMax;
 
     return (
-        <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans">
-
-            {/* PLATFORM HEADER */}
-            <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-500/20">
-                            <GraduationCap className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold tracking-tight leading-tight">Marks Entry (নম্বর প্রদান)</h1>
-                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">Dimla Government Girls' High School</p>
-                        </div>
-                    </div>
-                    <button onClick={handleReset} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">
-                        <RotateCcw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Reset Form</span>
-                    </button>
-                </div>
-            </header>
-
-            {/* MAIN CONTENT AREA */}
+        <div className="min-h-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans pb-16">
             <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 space-y-6">
+                <AdminPageHeader
+                    badge="মূল্যায়ন ও পরীক্ষা • নম্বর এন্ট্রি"
+                    badgeIcon={GraduationCap}
+                    title="পরীক্ষার নম্বর এন্ট্রি (Enter Marks)"
+                    subtitle="সাময়িক, অর্ধ-বার্ষিক ও বার্ষিক পরীক্ষার বিষয়ভিত্তিক প্রাপ্ত নম্বর ইনপুট ও সংরক্ষণ করুন।"
+                >
+                    <button onClick={handleReset} className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer">
+                        <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
+                        <span>রিসেট ফরম</span>
+                    </button>
+                </AdminPageHeader>
 
                 {error && (
                     <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm font-semibold">

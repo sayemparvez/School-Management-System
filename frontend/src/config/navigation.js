@@ -7,7 +7,8 @@ import {
     BarChart3,
     User,
     Award,
-    Banknote
+    Banknote,
+    Globe
 } from "lucide-react";
 
 export const adminNavigation = [
@@ -21,9 +22,10 @@ export const adminNavigation = [
         icon: BookOpen,
         children: [
             { name: "Classes", path: "/admin/courses" },
+            { name: "Class Routine (ক্লাস রুটিন)", path: "/admin/class-routine" },
+            { name: "Class Teachers (শ্রেণি শিক্ষক)", path: "/admin/class-teachers" },
             { name: "Subjects", path: "/admin/subjects" },
             { name: "Assign Subjects", path: "/admin/assign-subjects" },
-            { name: "Class Teachers", path: "/admin/class-teachers" },
         ],
     },
     {
@@ -34,6 +36,8 @@ export const adminNavigation = [
             { name: "Ex-Students (প্রাক্তন শিক্ষার্থী)", path: "/admin/ex-students" },
             { name: "Promote Students", path: "/admin/promote-students" },
             { name: "Teachers", path: "/admin/faculties" },
+            { name: "Staff (কর্মকর্তা ও কর্মচারী)", path: "/admin/staff" },
+            { name: "Admins (অ্যাডমিন কন্ট্রোল)", path: "/admin/manage-admins" },
         ],
     },
     {
@@ -59,7 +63,6 @@ export const adminNavigation = [
         children: [
             { name: "Fee Collection (ফি সংগ্রহ)", path: "/admin/fee-collection" },
             { name: "Fee Structure (ফি কাঠামো)", path: "/admin/fee-structure" },
-            { name: "Class Teachers (শ্রেণি শিক্ষক)", path: "/admin/class-teachers" },
             { name: "Fee Report (ফি রিপোর্ট)", path: "/admin/fee-report" },
         ],
     },
@@ -72,6 +75,11 @@ export const adminNavigation = [
             { name: "Fee Report", path: "/admin/fee-report" },
             { name: "Print Marksheet", path: "/admin/print-marksheet" },
         ],
+    },
+    {
+        name: "Website CMS (ওয়েবসাইট কন্ট্রোল)",
+        icon: Globe,
+        path: "/cms/dashboard",
     },
     {
         name: "Account",

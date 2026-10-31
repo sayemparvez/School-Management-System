@@ -5,6 +5,7 @@ const path = require("path");
 const ExcelJS = require("exceljs");
 const XLSX = require("xlsx");
 const fs = require("fs");
+const { uploadFileToCloudinary } = require("../config/cloudinary");
 
 const facultyUploadDir = path.resolve(__dirname, "../../uploads/faculties");
 
@@ -99,6 +100,7 @@ exports.createFaculty = async (req, res) => {
         facultyid,
         pdsid,
         facultyname,
+        name_bn,
         state,
         city,
         emailid,
@@ -123,12 +125,11 @@ exports.createFaculty = async (req, res) => {
         !facultyname ||
         !emailid ||
         !contactnumber ||
-        !qualification ||
         !birthdate ||
         !gender
     ) {
         return res.status(400).json({
-            message: "শিক্ষকের নাম, ইমেইল, মোবাইল নম্বর, শিক্ষাগত যোগ্যতা, জন্মতারিখ ও লিঙ্গ আবশ্যক।"
+            message: "শিক্ষকের নাম, ইমেইল, মোবাইল নম্বর, জন্মতারিখ ও লিঙ্গ আবশ্যক।"
         });
     }
 
@@ -140,12 +141,12 @@ exports.createFaculty = async (req, res) => {
 
     try {
         // ============================
-        // Default Password = DOB (if not provided)
+        // Default Password = @DGGHS123@ (if not provided)
         // ============================
 
         const finalPassword = password && password.trim() !== ""
-            ? password
-            : birthdate;
+            ? password.trim()
+            : "@DGGHS123@";
 
         const hashedPassword = await bcrypt.hash(finalPassword, 10);
 
@@ -156,7 +157,8 @@ exports.createFaculty = async (req, res) => {
         let profilepic;
 
         if (req.file) {
-            profilepic = req.file.filename;
+            const cloudUrl = await uploadFileToCloudinary(req.file.path, "teachers");
+            profilepic = cloudUrl || req.file.filename;
         } else {
             profilepic = getFacultyImage(facultyid);
         }
@@ -177,9 +179,9 @@ exports.createFaculty = async (req, res) => {
              (facultyid, facultyname, state, city, emailid, contactnumber,
               qualification, experience, birthdate, gender, profilepic,
               courcecode, semoryear, subject, position,
-              joineddate, password, activestatus, pdsid)
+              joineddate, password, activestatus, pdsid, name_bn)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-                     $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+                     $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
             [
                 finalFacultyId,
                 facultyname.trim(),
@@ -187,7 +189,7 @@ exports.createFaculty = async (req, res) => {
                 (city || "Nilphamari").trim(),
                 emailid.trim(),
                 contactnumber.trim(),
-                qualification.trim(),
+                (qualification || "প্রযোজ্য নয়").trim(),
                 (experience || "1 Year").trim(),
                 birthdate,
                 gender,
@@ -199,7 +201,8 @@ exports.createFaculty = async (req, res) => {
                 finalJoinedDate,
                 hashedPassword,
                 activestatus,
-                cleanPdsid
+                cleanPdsid,
+                name_bn ? name_bn.trim() : null
             ]
         );
 
@@ -235,6 +238,7 @@ exports.getFaculties = async (req, res) => {
                 f.facultyid,
                 f.pdsid,
                 f.facultyname,
+                f.name_bn,
                 f.state,
                 f.city,
                 f.emailid,
@@ -293,7 +297,9 @@ exports.updateFaculty = async (req, res) => {
 
     const {
         facultyid,
+        pdsid,
         facultyname,
+        name_bn,
         state,
         city,
         emailid,
@@ -311,14 +317,9 @@ exports.updateFaculty = async (req, res) => {
     } = req.body;
 
     if (
-        !facultyid ||
         !facultyname ||
-        !state ||
-        !city ||
         !emailid ||
         !contactnumber ||
-        !qualification ||
-        !experience ||
         !birthdate ||
         !gender
     ) {
@@ -349,7 +350,8 @@ exports.updateFaculty = async (req, res) => {
         // If new image uploaded
 
         if (req.file) {
-            finalProfilePic = req.file.filename;
+            const cloudUrl = await uploadFileToCloudinary(req.file.path, "teachers");
+            finalProfilePic = cloudUrl || req.file.filename;
         }
 
         // If facultyid changed but no new image
@@ -387,18 +389,23 @@ exports.updateFaculty = async (req, res) => {
                                  subject = $13,
                                  position = $14,
                                  joineddate = $15,
-                                 profilepic = $16
+                                 profilepic = $16,
+                                 pdsid = $17,
+                                 name_bn = $18
         `;
 
+        const cleanPdsid = pdsid && pdsid.trim() ? pdsid.trim() : null;
+        const cleanNameBn = name_bn && name_bn.trim() ? name_bn.trim() : null;
+
         const values = [
-            facultyid,
+            facultyid || oldFacultyId,
             facultyname.trim(),
-            state.trim(),
-            city.trim(),
+            (state || "Rangpur").trim(),
+            (city || "Nilphamari").trim(),
             emailid.trim(),
             contactnumber.trim(),
-            qualification.trim(),
-            experience.trim(),
+            (qualification || "প্রযোজ্য নয়").trim(),
+            (experience || "প্রযোজ্য নয়").trim(),
             birthdate,
             gender,
             courcecode || "NOT ASSIGNED",
@@ -406,7 +413,9 @@ exports.updateFaculty = async (req, res) => {
             subject || "NOT ASSIGNED",
             position || "NOT ASSIGNED",
             joineddate || null,
-            finalProfilePic
+            finalProfilePic,
+            cleanPdsid,
+            cleanNameBn
         ];
 
         if (password && password.trim() !== "") {
@@ -1459,7 +1468,7 @@ exports.resetFacultyPasswordByAdmin = async (req, res) => {
             return res.status(404).json({ message: "শিক্ষক খুঁজে পাওয়া যায়নি।" });
         }
         const t = facRes.rows[0];
-        const passToSet = newPassword || (t.birthdate ? new Date(t.birthdate).toISOString().slice(0, 10) : "123456");
+        const passToSet = newPassword || "@DGGHS123@";
         const hashed = await bcrypt.hash(passToSet, 10);
         await db.query("UPDATE faculties SET password = $1 WHERE sr_no = $2", [hashed, id]);
         res.json({ message: `${t.facultyname}-এর পাসওয়ার্ড সফলভাবে রিসেট করা হয়েছে (নতুন পাসওয়ার্ড: ${passToSet})।` });

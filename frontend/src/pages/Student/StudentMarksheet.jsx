@@ -153,8 +153,12 @@ const StudentMarksheet = () => {
                                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer font-medium"
                             >
                                 <option value="">Select Exam / পরীক্ষা...</option>
-                                <option value="1">Half Yearly Exam (অর্ধ-বার্ষিক পরীক্ষা)</option>
-                                <option value="2">Final Exam (বার্ষিক পরীক্ষা)</option>
+                                <option value="1">
+                                    {String(courseCode || "").toUpperCase().includes("10") ? "Pre-Test Exam (প্রাক-নির্বাচনী পরীক্ষা)" : "Half Yearly Exam (অর্ধবার্ষিক পরীক্ষা)"}
+                                </option>
+                                <option value="2">
+                                    {String(courseCode || "").toUpperCase().includes("10") ? "Test Exam (নির্বাচনী পরীক্ষা)" : "Annual Exam (বার্ষিক পরীক্ষা)"}
+                                </option>
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                         </div>

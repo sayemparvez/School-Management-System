@@ -22,13 +22,24 @@ import {
     ShieldCheck,
     FileText,
     TrendingUp,
-    School
+    School,
+    Briefcase
 } from "lucide-react";
 
 export default function AdminDashboard() {
     const token = localStorage.getItem("token");
 
-    const [stats, setStats] = useState({
+    // Instant Stale-While-Revalidate from sessionStorage
+    const cachedStats = useMemo(() => {
+        try {
+            const raw = sessionStorage.getItem("admin_dashboard_metrics");
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    }, []);
+
+    const [stats, setStats] = useState(cachedStats || {
         total_students: 0,
         total_alumni: 0,
         total_faculty: 0,
@@ -41,17 +52,24 @@ export default function AdminDashboard() {
         today_attendance: { total: 0, present: 0 }
     });
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!cachedStats);
     const [activeReceipt, setActiveReceipt] = useState(null);
 
     // Fetch live dashboard statistics
     const fetchStats = async () => {
         try {
-            setLoading(true);
+            if (!cachedStats) setLoading(true);
             const res = await api.get("/api/dashboard", {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setStats(res.data);
+            if (res.data) {
+                setStats(res.data);
+                try {
+                    sessionStorage.setItem("admin_dashboard_metrics", JSON.stringify(res.data));
+                } catch {
+                    // Ignore quota or private browsing errors
+                }
+            }
         } catch (error) {
             console.error("Dashboard fetch error:", error);
         } finally {
@@ -83,30 +101,30 @@ export default function AdminDashboard() {
 
     return (
         <div className="pb-16 font-sans bg-slate-50 dark:bg-slate-950 min-h-full transition-colors duration-300">
+            <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-6">
+                {/* INSTITUTIONAL HERO HEADER */}
+                <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden border border-emerald-500/20">
+                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            {/* INSTITUTIONAL HERO HEADER */}
-            <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 text-white shadow-lg">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-2.5 flex items-center justify-center flex-shrink-0 shadow-inner">
-                                <School className="w-9 h-9 text-emerald-300" />
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow-md border border-emerald-400/40 overflow-hidden">
+                                <img src="/logo.png" alt="ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয় লোগো" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
+                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
                                         সরকারি মাধ্যমিক বিদ্যালয়
                                     </span>
                                     <span className="text-[11px] text-emerald-200 font-mono hidden sm:inline">
-                                        EIIN: 127756 • কোড: 7505
+                                        EIIN: 124754 • কোড: 7505
                                     </span>
                                 </div>
                                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white mt-1">
                                     ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়
                                 </h1>
                                 <p className="text-xs sm:text-sm text-emerald-100/90 font-medium flex items-center gap-2 mt-0.5">
-                                    <span>ডিমলা, নীলফামারী • স্থাপিত: ১৯৫২ খ্রিঃ</span>
+                                    <span>ডিমলা, নীলফামারী • স্থাপিত: ১৯৬৭ খ্রিঃ</span>
                                     <span>•</span>
                                     <span className="text-emerald-300 font-semibold">{todayFormatted}</span>
                                 </p>
@@ -130,7 +148,6 @@ export default function AdminDashboard() {
                                 <span>ফি কালেকশন</span>
                             </Link>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -175,12 +192,12 @@ export default function AdminDashboard() {
                             linkTo="/admin/ex-students"
                         />
 
-                        {/* 3. Teachers & Staff */}
+                        {/* 3. Teachers */}
                         <MetricCard
-                            title="শিক্ষক ও স্টাফ"
+                            title="মোট শিক্ষক"
                             value={stats.total_faculty}
                             unit="জন"
-                            subtitle="প্রধান শিক্ষক ও সহকর্মী"
+                            subtitle="প্রধান ও সহকারী শিক্ষক"
                             icon={UserCheck}
                             color="purple"
                             loading={loading}
@@ -291,6 +308,13 @@ export default function AdminDashboard() {
                             icon={BarChart3}
                             to="/admin/fee-report"
                             color="slate"
+                        />
+                        <QuickLaunchTile
+                            title="কর্মকর্তা ও কর্মচারী"
+                            subtitle="অফিস ও সহায়ক জনবল"
+                            icon={Briefcase}
+                            to="/admin/staff"
+                            color="emerald"
                         />
                     </div>
                 </section>
@@ -455,7 +479,7 @@ export default function AdminDashboard() {
                                 <span>অ্যাডমিনিস্ট্রেটিভ নিরাপত্তা ও নিয়ন্ত্রণ</span>
                             </div>
                             <p className="text-xs text-slate-300 leading-relaxed">
-                                আপনি ডিমla সরকারি বালিকা উচ্চ বিদ্যালয়ের প্রধান কন্ট্রোল সেন্টারে সংযুক্ত আছেন। বিদ্যালয়ের সকল শ্রেণি, শিক্ষক, পরীক্ষার নম্বর, এবং ফি আদায়ের তথ্য এনক্রিপ্টেড ও সুরক্ষিত।
+                                আপনি ডিমলা সরকারি বালিকা উচ্চ বিদ্যালয়ের প্রধান কন্ট্রোল সেন্টারে সংযুক্ত আছেন। বিদ্যালয়ের সকল শ্রেণি, শিক্ষক, পরীক্ষার নম্বর, এবং ফি আদায়ের তথ্য এনক্রিপ্টেড ও সুরক্ষিত।
                             </p>
                             <div className="pt-2 border-t border-slate-700/80 flex items-center justify-between text-[11px] text-slate-400">
                                 <span>ডাটাবেজ: PostgreSQL</span>

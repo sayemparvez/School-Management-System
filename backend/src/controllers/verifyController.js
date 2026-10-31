@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { calculateBangladeshResult } = require("../utils/bangladeshGrading");
 
 // =========================================================
 // Public Marksheet Verification Controller
@@ -98,94 +99,36 @@ exports.verifyMarksheet = async (req, res) => {
         }
 
         // 5. Bangladesh NCTB Grading Logic
-        const getBangladeshGrade = (obtained, max) => {
-            if (!max || max <= 0) return { grade: "N/A", point: 0 };
-            const pct = (obtained / max) * 100;
-            if (pct >= 80) return { grade: "A+", point: 5.0 };
-            if (pct >= 70) return { grade: "A", point: 4.0 };
-            if (pct >= 60) return { grade: "A-", point: 3.5 };
-            if (pct >= 50) return { grade: "B", point: 3.0 };
-            if (pct >= 40) return { grade: "C", point: 2.0 };
-            if (pct >= 33) return { grade: "D", point: 1.0 };
-            return { grade: "F", point: 0.0 };
-        };
+        const { processedRows, summary } = calculateBangladeshResult(marksRows);
 
-        let totalObtained = 0;
-        let totalMaximum = 0;
-        let totalGradePoints = 0;
-        let subjectFailed = false;
-
-        const processedMarks = marksRows.map(r => {
-            const cq = Number(r.cq_marks) || 0;
-            const mcq = Number(r.mcq_marks) || 0;
-            const practical = Number(r.practicalmarks) || 0;
-            const theory = (r.cq_marks !== null || r.mcq_marks !== null) ? (cq + mcq) : (Number(r.theorymarks) || 0);
-
-            const theoryFull = Number(r.theoryfull) || 0;
-            const practicalFull = Number(r.practicalfull) || 0;
-
-            const subjectTotal = theory + practical;
-            const subjectMax = theoryFull + practicalFull;
-
-            totalObtained += subjectTotal;
-            totalMaximum += subjectMax;
-
-            const { grade, point } = getBangladeshGrade(subjectTotal, subjectMax);
-            if (grade === "F") {
-                subjectFailed = true;
-            }
-            totalGradePoints += point;
-
-            return {
-                subjectcode: r.subjectcode,
-                subjectname: r.subjectname,
-                type: r.subjecttype,
-                cq: {
-                    obtained: cq,
-                    max: Number(r.cq_max_marks) || 0
-                },
-                mcq: {
-                    obtained: mcq,
-                    max: Number(r.mcq_max_marks) || 0
-                },
-                theory: {
-                    obtained: theory,
-                    max: theoryFull
-                },
-                practical: {
-                    obtained: practical,
-                    max: practicalFull
-                },
-                total: {
-                    obtained: subjectTotal,
-                    max: subjectMax
-                },
-                grade,
-                gradePoint: point.toFixed(2),
-                status: (grade !== "F") ? "PASS" : "FAIL"
-            };
-        });
-
-        // 6. Overall Percentage & GPA Logic
-        const percentage = totalMaximum
-            ? Number(((totalObtained / totalMaximum) * 100).toFixed(2))
-            : 0;
-
-        const gpaVal = processedMarks.length ? (totalGradePoints / processedMarks.length) : 0;
-        const finalGpa = subjectFailed ? "0.00" : gpaVal.toFixed(2);
-
-        let finalGrade = "F";
-        if (!subjectFailed) {
-            if (gpaVal >= 5.0) finalGrade = "A+";
-            else if (gpaVal >= 4.0) finalGrade = "A";
-            else if (gpaVal >= 3.5) finalGrade = "A-";
-            else if (gpaVal >= 3.0) finalGrade = "B";
-            else if (gpaVal >= 2.0) finalGrade = "C";
-            else if (gpaVal >= 1.0) finalGrade = "D";
-        }
-
-        const result = subjectFailed ? "FAILED" : "PASSED";
-        const division = subjectFailed ? "FAILED" : (gpaVal >= 5.0 ? "Golden A+" : `GPA ${finalGpa}`);
+        const processedMarks = processedRows.map(r => ({
+            subjectcode: r.subjectcode,
+            subjectname: r.subjectname,
+            type: r.subjecttype,
+            cq: {
+                obtained: r.cq_marks,
+                max: Number(r.cq_max_marks) || 0
+            },
+            mcq: {
+                obtained: r.mcq_marks,
+                max: Number(r.mcq_max_marks) || 0
+            },
+            theory: {
+                obtained: r.theorymarks,
+                max: Number(r.theoryfull) || 0
+            },
+            practical: {
+                obtained: r.practicalmarks,
+                max: Number(r.practicalfull) || 0
+            },
+            total: {
+                obtained: r.totalmarks,
+                max: r.maxmarks
+            },
+            grade: r.grade,
+            gradePoint: r.gradepoint,
+            status: (r.grade !== "F") ? "PASS" : "FAIL"
+        }));
 
         // Exam Title
         const isClass10 = String(courseCode).toUpperCase().includes("10");
@@ -213,15 +156,7 @@ exports.verifyMarksheet = async (req, res) => {
             },
             performance: {
                 marks: processedMarks,
-                summary: {
-                    totalObtained,
-                    totalMaximum,
-                    percentage,
-                    gpa: finalGpa,
-                    finalGrade,
-                    division,
-                    result
-                }
+                summary
             }
         });
 
