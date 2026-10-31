@@ -3,6 +3,7 @@ import PublicLayout from "./pages/Public/PublicLayout";
 import HomePage from "./pages/Public/HomePage";
 import AtAGlancePage from "./pages/Public/AtAGlancePage";
 import HistoryPage from "./pages/Public/HistoryPage";
+import CommitteePage from "./pages/Public/CommitteePage";
 import TeachersPage from "./pages/Public/TeachersPage";
 import StaffPage from "./pages/Public/StaffPage";
 import StudentStatisticsPage from "./pages/Public/StudentStatisticsPage";
@@ -149,7 +150,7 @@ function App() {
                 <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
                 <Route path="/at-a-glance" element={<PublicLayout><AtAGlancePage /></PublicLayout>} />
                 <Route path="/history" element={<PublicLayout><HistoryPage /></PublicLayout>} />
-                <Route path="/committee" element={<PublicLayout><AtAGlancePage /></PublicLayout>} />
+                <Route path="/committee" element={<PublicLayout><CommitteePage /></PublicLayout>} />
                 <Route path="/teachers" element={<PublicLayout><TeachersPage /></PublicLayout>} />
                 <Route path="/staff" element={<PublicLayout><StaffPage /></PublicLayout>} />
                 <Route path="/student-statistics" element={<PublicLayout><StudentStatisticsPage /></PublicLayout>} />

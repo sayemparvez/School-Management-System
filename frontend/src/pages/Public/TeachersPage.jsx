@@ -184,48 +184,62 @@ const TeachersPage = () => {
 
                     {/* Teacher Cards Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {filtered.map((teacher) => (
-                            <div
-                                key={teacher.id}
-                                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex flex-col justify-between hover:shadow-md hover:border-emerald-500/50 transition-all group"
-                            >
-                                <div className="flex items-start gap-4">
-                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0 border-2 border-emerald-400/50 p-0.5 group-hover:scale-105 transition-transform bg-slate-50">
-                                        <img
-                                            src={resolveMediaUrl(teacher.image)}
-                                            alt={teacher.name}
-                                            className="w-full h-full object-cover rounded-xl"
-                                            onError={(e) => { e.target.src = "/headmaster.png"; }}
-                                        />
+                        {filtered.map((teacher) => {
+                            const isHead = teacher.designation?.includes("প্রধান শিক্ষক") && !teacher.designation?.includes("সহকারী");
+                            return (
+                                <div
+                                    key={teacher.id}
+                                    className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-xs p-4 sm:p-5 flex flex-col justify-between hover:shadow-md transition-all group ${
+                                        isHead 
+                                            ? "border-emerald-500/70 dark:border-emerald-500/50 ring-1 ring-emerald-500/20 bg-gradient-to-br from-emerald-50/30 to-white dark:from-emerald-950/10 dark:to-slate-900 sm:col-span-2 md:col-span-1" 
+                                            : "border-slate-200 dark:border-slate-800 hover:border-emerald-500/50"
+                                    }`}
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0 p-0.5 group-hover:scale-105 transition-transform bg-slate-50 ${
+                                            isHead ? "border-2 border-emerald-600 shadow-xs" : "border-2 border-emerald-400/50"
+                                        }`}>
+                                            <img
+                                                src={resolveMediaUrl(teacher.image)}
+                                                alt={teacher.name}
+                                                className="w-full h-full object-cover object-top rounded-xl"
+                                                onError={(e) => { e.target.src = "/headmaster.png"; }}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            {isHead && (
+                                                <span className="inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 mb-1 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                                                    {lang === "bn" ? "প্রতিষ্ঠান প্রধান" : "Head of Institution"}
+                                                </span>
+                                            )}
+                                            <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
+                                                {teacher.name}
+                                            </h3>
+                                            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                                {teacher.designation}
+                                            </p>
+                                            <p className="text-[11px] text-slate-500 font-medium">
+                                                {teacher.department}
+                                            </p>
+                                            <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
+                                                {teacher.qualification}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
-                                            {teacher.name}
-                                        </h3>
-                                        <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                            {teacher.designation}
-                                        </p>
-                                        <p className="text-[11px] text-slate-500 font-medium">
-                                            {teacher.department}
-                                        </p>
-                                        <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
-                                            {teacher.qualification}
-                                        </span>
-                                    </div>
-                                </div>
 
-                                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-[11px] text-slate-500">
-                                    <div className="flex items-center gap-2">
-                                        <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                                        <span>{teacher.phone}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Mail className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                                        <span className="truncate">{teacher.email}</span>
+                                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-[11px] text-slate-500">
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                                            <span>{teacher.phone}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Mail className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                                            <span className="truncate">{teacher.email}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {filtered.length === 0 && (
