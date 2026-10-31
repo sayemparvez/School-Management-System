@@ -8,7 +8,7 @@ const getBaseURL = () => {
         if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
             return "http://localhost:5000";
         }
-        return "https://pregnant-profits-sunrise-protected.trycloudflare.com";
+        return "https://priced-evening-acre-coral.trycloudflare.com";
     }
     return "http://localhost:5000";
 };
