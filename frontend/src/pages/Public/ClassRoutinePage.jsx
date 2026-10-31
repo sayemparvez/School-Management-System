@@ -41,6 +41,272 @@ const routineRooms = [
     "কম্পিউটার ল্যাব", "বিজ্ঞানাগার (ল্যাব)", "খেলার মাঠ", "অডিটোরিয়াম"
 ];
 
+const DEFAULT_ROUTINES_DATA = {
+    academic_year: "২০২৬",
+    classes: {
+        class_6: {
+            name_bn: "৬ষ্ঠ শ্রেণি",
+            name_en: "Class 6",
+            section_bn: "কোনো শাখা নেই (সাধারণ)",
+            room_no: "১০১",
+            class_teacher: "মোছাঃ সেলিনা আক্তার",
+            daily_periods: 6,
+            schedule: {
+                "রবিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "বাংলা ১ম পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "ইংরেজি ১ম পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "সাধারণ বিজ্ঞান", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "তথ্য ও যোগাযোগ প্রযুক্তি (ল্যাব)", teacher: "ফারহানা হক", room: "ডিজিটাল ল্যাব" }
+                ],
+                "সোমবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "ইংরেজি ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "বাংলা ২য় পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ইসলাম ও নৈতিক শিক্ষা / হিন্দুধর্ম", teacher: "মাওলানা আব্দুর রশিদ / সুবোধ রায়", room: "১০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "সাধারণ বিজ্ঞান (ব্যবহারিক)", teacher: "মোছাঃ ফাতেমা বেগম", room: "বিজ্ঞান ল্যাব" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "শারীরিক শিক্ষা ও স্বাস্থ্য", teacher: "আব্দুল মজিদ", room: "খেলার মাঠ" }
+                ],
+                "মঙ্গলবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ বিজ্ঞান", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বাংলা ১ম পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ইংরেজি ১ম পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "চারু ও কারুকলা", teacher: "নিলুফার ইয়াসমিন", room: "১০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০১" }
+                ],
+                "বুধবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "তথ্য ও যোগাযোগ প্রযুক্তি", teacher: "ফারহানা হক", room: "ডিজিটাল ল্যাব" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "ইংরেজি ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলা ২য় পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "সাধারণ বিজ্ঞান", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "কৃষি শিক্ষা / গার্হস্থ্য বিজ্ঞান", teacher: "শামসুন্নাহার পারভীন", room: "১০১" }
+                ],
+                "বৃহস্পতিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ গণিত (কুইজ ও মূল্যায়ন)", teacher: "মিজানুর রহমান", room: "১০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "ইংরেজি ১ম ও ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বাংলা ১ম ও ২য় পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা আব্দুর রশিদ / সুবোধ রায়", room: "১০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "স্কাউটিং ও সহশিক্ষা কার্যক্রম", teacher: "আব্দুল মজিদ ও শিক্ষকবৃন্দ", room: "মাঠ / অডিটোরিয়াম" }
+                ]
+            }
+        },
+        class_7: {
+            name_bn: "৭ম শ্রেণি",
+            name_en: "Class 7",
+            section_bn: "কোনো শাখা নেই (সাধারণ)",
+            room_no: "১০২",
+            class_teacher: "মোঃ রফিকুল ইসলাম",
+            daily_periods: 6,
+            schedule: {
+                "রবিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ গণিত", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "বাংলা ১ম পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "ইংরেজি ১ম পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০২" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "সাধারণ বিজ্ঞান", teacher: "মিজানুর রহমান", room: "১০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "আইসিটি", teacher: "ফারহানা হক", room: "ডিজিটাল ল্যাব" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০২" }
+                ],
+                "সোমবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "বাংলা ২য় পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "ইংরেজি ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ গণিত", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০২" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা আব্দুর রশিদ", room: "১০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "সাধারণ বিজ্ঞান ল্যাব", teacher: "মিজানুর রহমান", room: "বিজ্ঞানাগার" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "শারীরিক শিক্ষা", teacher: "আব্দুল মজিদ", room: "মাঠ" }
+                ],
+                "মঙ্গলবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "ইংরেজি ১ম পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ গণিত", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ বিজ্ঞান", teacher: "মিজানুর রহমান", room: "১০২" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলা ১ম পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "চারু ও কারুকলা", teacher: "নিলুফার ইয়াসমিন", room: "১০২" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০২" }
+                ],
+                "বুধবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ বিজ্ঞান", teacher: "মিজানুর রহমান", room: "১০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ গণিত", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "আইসিটি", teacher: "ফারহানা হক", room: "ডিজিটাল ল্যাব" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলা ২য় পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "ইংরেজি ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০২" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "কৃষি শিক্ষা / গার্হস্থ্য বিজ্ঞান", teacher: "শামসুন্নাহার পারভীন", room: "১০২" }
+                ],
+                "বৃহস্পতিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "গণিত প্র্যাকটিস", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "ইংরেজি গ্রামার", teacher: "মোঃ রফিকুল ইসলাম", room: "১০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বাংলা সাহিত্য", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০২" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা আব্দুর রশিদ", room: "১০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "বিজ্ঞান প্রজেক্ট", teacher: "মিজানুর রহমান", room: "১০২" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "সহশিক্ষা ও বিতর্ক", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০২" }
+                ]
+            }
+        },
+        class_8: {
+            name_bn: "৮ম শ্রেণি",
+            name_en: "Class 8",
+            section_bn: "কোনো শাখা নেই (সাধারণ)",
+            room_no: "১০৩",
+            class_teacher: "মিজানুর রহমান",
+            daily_periods: 6,
+            schedule: {
+                "রবিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০৩" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ বিজ্ঞান", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০৩" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "ইংরেজি ১ম পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০৩" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলা ১ম পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০৩" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "তথ্য ও যোগাযোগ প্রযুক্তি", teacher: "ফারহানা হক", room: "ডিজিটাল ল্যাব" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০৩" }
+                ],
+                "সোমবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "ইংরেজি ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০৩" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০৩" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বাংলা ২য় পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০৩" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা আব্দুর রশিদ", room: "১০৩" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "সাধারণ বিজ্ঞান ল্যাব", teacher: "মোছাঃ ফাতেমা বেগম", room: "বিজ্ঞানাগার" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "শারীরিক শিক্ষা ও স্বাস্থ্য", teacher: "আব্দুল মজিদ", room: "মাঠ" }
+                ],
+                "মঙ্গলবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ বিজ্ঞান", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০৩" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০৩" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বাংলা ১ম পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০৩" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ইংরেজি ১ম পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০৩" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০৩" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "চারু ও কারুকলা", teacher: "নিলুফার ইয়াসমিন", room: "১০৩" }
+                ],
+                "বুধবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "তথ্য ও যোগাযোগ প্রযুক্তি", teacher: "ফারহানা হক", room: "ডিজিটাল ল্যাব" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "ইংরেজি ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০৩" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ গণিত", teacher: "মিজানুর রহমান", room: "১০৩" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলা ২য় পত্র", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০৩" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "সাধারণ বিজ্ঞান", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০৩" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "কৃষি শিক্ষা / গার্হস্থ্য বিজ্ঞান", teacher: "শামসুন্নাহার পারভীন", room: "১০৩" }
+                ],
+                "বৃহস্পতিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "গণিত রিভিশন ও কুইজ", teacher: "মিজানুর রহমান", room: "১০৩" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "ইংরেজি ১ম ও ২য় পত্র", teacher: "মোঃ রফিকুল ইসলাম", room: "১০৩" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বিজ্ঞান সমস্যা সমাধান", teacher: "মোছাঃ ফাতেমা বেগম", room: "১০৩" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "মোঃ হাফিজুর রহমান", room: "১০৩" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০৩:০০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা আব্দুর রশিদ", room: "১০৩" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০৩:০০ - ০৪:০০ PM", subject: "স্কাউটিং ও সাংস্কৃতিক", teacher: "মোছাঃ সেলিনা আক্তার", room: "১০৩" }
+                ]
+            }
+        },
+        class_9: {
+            name_bn: "৯ম শ্রেণি",
+            name_en: "Class 9",
+            section_bn: "বিজ্ঞান ও মানবিক শাখা",
+            room_no: "২০১ ও ২০২",
+            class_teacher: "ড. শফিকুল ইসলাম",
+            daily_periods: 7,
+            schedule: {
+                "রবিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "পদার্থবিজ্ঞান / ইতিহাস", teacher: "ড. শফিকুল ইসলাম / সুলতানা রাজিয়া", room: "২০১ / ২০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "রসায়ন / অর্থনীতি", teacher: "মোছাঃ নাজনীন জাহান / মোজাম্মেল হক", room: "২০১ / ২০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ গণিত (যৌথ)", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "উচ্চতর গণিত / ভূগোল", teacher: "আব্দুল কাদের জিলানী / আসমা খাতুন", room: "২০১ / ২০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "বাংলা ১ম পত্র (যৌথ)", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "ইংরেজি ১ম পত্র (যৌথ)", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "তথ্য ও যোগাযোগ প্রযুক্তি (যৌথ)", teacher: "ইঞ্জি. তারেক মাহমুদ", room: "কম্পিউটার ল্যাব" }
+                ],
+                "সোমবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "জীববিজ্ঞান / পৌরনীতি", teacher: "মোছাঃ নাজনীন জাহান / আসমা খাতুন", room: "২০১ / ২০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "বাংলা ২য় পত্র (যৌথ)", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "ইংরেজি ২য় পত্র (যৌথ)", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "কৃষি শিক্ষা / গার্হস্থ্য বিজ্ঞান", teacher: "শামসুন্নাহার / সুলতানা রাজিয়া", room: "২০১ / ২০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "রসায়ন (ব্যবহারিক) / অর্থনীতি", teacher: "মোছাঃ নাজনীন জাহান / মোজাম্মেল হক", room: "ল্যাব / ২০২" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয় (যৌথ)", teacher: "সুলতানা রাজিয়া", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা (যৌথ)", teacher: "মাওলানা মোজাম্মেল / স্বপন কুমার", room: "২০১" }
+                ],
+                "মঙ্গলবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ গণিত (যৌথ)", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "পদার্থবিজ্ঞান / ইতিহাস", teacher: "ড. শফিকুল ইসলাম / সুলতানা রাজিয়া", room: "২০১ / ২০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "রসায়ন / অর্থনীতি", teacher: "মোছাঃ নাজনীন জাহান / মোজাম্মেল হক", room: "২০১ / ২০২" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "উচ্চতর গণিত / ভূগোল", teacher: "আব্দুল কাদের জিলানী / আসমা খাতুন", room: "২০১ / ২০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "বাংলা ১ম পত্র (যৌথ)", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "ইংরেজি ১ম পত্র (যৌথ)", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "শারীরিক শিক্ষা ও ক্যারিয়ার", teacher: "আব্দুল মজিদ", room: "মাঠ / ২০১" }
+                ],
+                "বুধবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "জীববিজ্ঞান / পৌরনীতি", teacher: "মোছাঃ নাজনীন জাহান / আসমা খাতুন", room: "২০১ / ২০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "উচ্চতর গণিত / অর্থনীতি", teacher: "আব্দুল কাদের জিলানী / মোজাম্মেল হক", room: "২০১ / ২০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বাংলা ২য় পত্র (যৌথ)", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ইংরেজি ২য় পত্র (যৌথ)", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "পদার্থবিজ্ঞান (ব্যবহারিক) / যুক্তিবিদ্যা", teacher: "ড. শফিকুল ইসলাম", room: "ল্যাবরেটরি" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয় (যৌথ)", teacher: "সুলতানা রাজিয়া", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা (যৌথ)", teacher: "মাওলানা মোজাম্মেল / স্বপন কুমার", room: "২০১" }
+                ],
+                "বৃহস্পতিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "সাধারণ গণিত ও উচ্চতর গণিত", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "পদার্থবিজ্ঞান / রসায়ন রিভিশন", teacher: "ড. শফিকুল ইসলাম / মোছাঃ নাজনীন", room: "২০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "ইংরেজি গ্রামার ও রাইটিং", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলা ব্যাকরণ ও সাহিত্য পাঠ", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "বিজ্ঞান ও সমাজ মডেল টেস্ট", teacher: "বিষয়ভিত্তিক শিক্ষকবৃন্দ", room: "২০১ / ২০২" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা মোজাম্মেল / স্বপন কুমার", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "সাপ্তাহিক বিতর্ক, কুইজ ও ক্লাব", teacher: "ক্লাব মডারেটর শিক্ষকবৃন্দ", room: "অডিটোরিয়াম" }
+                ]
+            }
+        },
+        class_10: {
+            name_bn: "১০ম শ্রেণি (এসএসসি ২০২৭)",
+            name_en: "Class 10 (SSC 2027)",
+            section_bn: "বিজ্ঞান ও মানবিক শাখা",
+            room_no: "২০১ ও ২০২",
+            class_teacher: "প্রভাষক কামরুল হাসান",
+            daily_periods: 7,
+            schedule: {
+                "রবিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "বাংলা ১ম পত্র (যৌথ)", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "ইংরেজি ১ম পত্র (যৌথ)", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ গণিত (যৌথ)", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "পদার্থবিজ্ঞান / ইতিহাস", teacher: "ড. শফিকুল ইসলাম / সুলতানা রাজিয়া", room: "২০১ / ২০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "রসায়ন / অর্থনীতি", teacher: "মোছাঃ নাজনীন জাহান / মোজাম্মেল হক", room: "২০১ / ২০২" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "উচ্চতর গণিত / ভূগোল", teacher: "আব্দুল কাদের জিলানী / আসমা খাতুন", room: "২০১ / ২০২" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "আইসিটি ও কম্পিউটার ল্যাব", teacher: "ইঞ্জি. তারেক মাহমুদ", room: "কম্পিউটার ল্যাব" }
+                ],
+                "সোমবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "জীববিজ্ঞান / পৌরনীতি", teacher: "মোছাঃ নাজনীন জাহান / আসমা খাতুন", room: "২০১ / ২০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "সাধারণ গণিত (যৌথ)", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "বাংলা ২য় পত্র (যৌথ)", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ইংরেজি ২য় পত্র (যৌথ)", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "পদার্থবিজ্ঞান ব্যবহারিক", teacher: "ড. শফিকুল ইসলাম", room: "বিজ্ঞানাগার" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "সুলতানা রাজিয়া", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা মোজাম্মেল / স্বপন কুমার", room: "২০১" }
+                ],
+                "মঙ্গলবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "পদার্থবিজ্ঞান / ইতিহাস", teacher: "ড. শফিকুল ইসলাম / সুলতানা রাজিয়া", room: "২০১ / ২০২" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "রসায়ন / অর্থনীতি", teacher: "মোছাঃ নাজনীন জাহান / মোজাম্মেল হক", room: "২০১ / ২০২" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "সাধারণ গণিত (যৌথ)", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "উচ্চতর গণিত / ভূগোল", teacher: "আব্দুল কাদের জিলানী / আসমা খাতুন", room: "২০১ / ২০২" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "বাংলা ১ম পত্র (যৌথ)", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "ইংরেজি ১ম পত্র (যৌথ)", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "শারীরিক শিক্ষা ও ক্যারিয়ার", teacher: "আব্দুল মজিদ", room: "মাঠ / ২০১" }
+                ],
+                "বুধবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "রসায়ন ল্যাব / ভূগোল প্র্যাকটিক্যাল", teacher: "মোছাঃ নাজনীন জাহান", room: "বিজ্ঞানাগার" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "জীববিজ্ঞান ল্যাব", teacher: "মোছাঃ নাজনীন জাহান", room: "বিজ্ঞানাগার" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "উচ্চতর গণিত সমস্যা সমাধান", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "ইংরেজি গ্রামার ও মডেল টেস্ট", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "বাংলা মডেল টেস্ট", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "বাংলাদেশ ও বিশ্বপরিচয়", teacher: "সুলতানা রাজিয়া", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা মোজাম্মেল", room: "২০১" }
+                ],
+                "বৃহস্পতিবার": [
+                    { period: "১ম পিরিয়ড", time: "১০:১৫ - ১১:০০ AM", subject: "এসএসসি স্পেশাল গণিত সলভ", teacher: "আব্দুল কাদের জিলানী", room: "২০১" },
+                    { period: "২য় পিরিয়ড", time: "১১:০০ - ১১:৪৫ AM", subject: "পদার্থবিজ্ঞান / রসায়ন রিভিশন", teacher: "ড. শফিকুল ইসলাম / মোছাঃ নাজনীন", room: "২০১" },
+                    { period: "৩য় পিরিয়ড", time: "১১:৪৫ - ১২:৩০ PM", subject: "ইংরেজি রাইটিং স্কিল", teacher: "মাহমুদা খাতুন", room: "২০১" },
+                    { period: "৪র্থ পিরিয়ড", time: "১২:৩০ - ০১:১৫ PM", subject: "বাংলা ব্যাকরণ ও সাহিত্য পাঠ", teacher: "প্রভাষক কামরুল হাসান", room: "২০১" },
+                    { period: "৫ম পিরিয়ড", time: "০২:০০ - ০২:৪০ PM", subject: "বিজ্ঞান ও মানবিক মডেল টেস্ট", teacher: "বিষয়ভিত্তিক শিক্ষকবৃন্দ", room: "২০১ / ২০২" },
+                    { period: "৬ষ্ঠ পিরিয়ড", time: "০২:৪০ - ০৩:২০ PM", subject: "ধর্ম ও নৈতিক শিক্ষা", teacher: "মাওলানা মোজাম্মেল / স্বপন কুমার", room: "২০১" },
+                    { period: "৭ম পিরিয়ড", time: "০৩:২০ - ০৪:০০ PM", subject: "সাপ্তাহিক বিতর্ক, কুইজ ও ক্লাব", teacher: "ক্লাব মডারেটর শিক্ষকবৃন্দ", room: "অডিটোরিয়াম" }
+                ]
+            }
+        }
+    }
+};
+
 const ClassRoutinePage = ({ isAdmin = false }) => {
     const { lang, t } = useLanguage();
     const { cms, refreshCMS } = useCMS();
@@ -84,11 +350,20 @@ const ClassRoutinePage = ({ isAdmin = false }) => {
         setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3500);
     };
 
+    const parseData = (raw) => {
+        if (!raw) return null;
+        if (typeof raw === "string") {
+            try { return JSON.parse(raw); } catch { return null; }
+        }
+        return raw;
+    };
+
     const fetchRoutines = async () => {
         try {
             const res = await api.get("/api/public/class-routines");
             if (res.data && res.data.success && res.data.data) {
-                setRoutinesData(res.data.data);
+                const parsed = parseData(res.data.data);
+                setRoutinesData(parsed);
             }
         } catch (err) {
             console.warn("Could not load dynamic class routines, using CMS fallback:", err);
@@ -101,22 +376,21 @@ const ClassRoutinePage = ({ isAdmin = false }) => {
         fetchRoutines();
     }, []);
 
-    const sourceData = routinesData || cms?.class_routines;
+    const sourceData = parseData(routinesData) || parseData(cms?.class_routines) || DEFAULT_ROUTINES_DATA;
     const isNineOrTen = selectedClass === "class_9" || selectedClass === "class_10";
     const totalDailyPeriods = isNineOrTen ? 7 : 6;
 
-    const currentClassInfo = sourceData?.classes?.[selectedClass] || {
-        name_bn: selectedClass === "class_6" ? "৬ষ্ঠ শ্রেণি" :
-                 selectedClass === "class_7" ? "৭ম শ্রেণি" :
-                 selectedClass === "class_8" ? "৮ম শ্রেণি" :
-                 selectedClass === "class_9" ? "৯ম শ্রেণি" : "১০ম শ্রেণি (এসএসসি ২০২৭)",
-        name_en: selectedClass.replace("_", " ").toUpperCase(),
-        section_bn: isNineOrTen ? "বিজ্ঞান ও মানবিক শাখা" : "কোনো শাখা নেই (সাধারণ)",
-        room_no: isNineOrTen ? "২০১ ও ২০২" : selectedClass === "class_6" ? "১০১" : selectedClass === "class_7" ? "১০২" : "১০৩",
-        class_teacher: isNineOrTen ? (selectedClass === "class_9" ? "ড. শফিকুল ইসলাম" : "প্রভাষক কামরুল হাসান") :
-                       selectedClass === "class_6" ? "মোছাঃ সেলিনা আক্তার" : selectedClass === "class_7" ? "মোঃ রফিকুল ইসলাম" : "মিজানুর রহমান",
-        daily_periods: totalDailyPeriods,
-        schedule: {}
+    const defaultForClass = DEFAULT_ROUTINES_DATA.classes[selectedClass] || {};
+    const classFromSource = sourceData?.classes?.[selectedClass];
+
+    const currentClassInfo = {
+        name_bn: classFromSource?.name_bn || defaultForClass.name_bn || "শ্রেণি",
+        name_en: classFromSource?.name_en || defaultForClass.name_en || "Class",
+        section_bn: classFromSource?.section_bn || defaultForClass.section_bn || (isNineOrTen ? "বিজ্ঞান ও মানবিক শাখা" : "কোনো শাখা নেই (সাধারণ)"),
+        room_no: classFromSource?.room_no || defaultForClass.room_no || "১০১",
+        class_teacher: classFromSource?.class_teacher || defaultForClass.class_teacher || "শ্রেণি শিক্ষক",
+        daily_periods: classFromSource?.daily_periods || defaultForClass.daily_periods || totalDailyPeriods,
+        schedule: classFromSource?.schedule || defaultForClass.schedule || {}
     };
 
     const getPeriodTime = (period, classId = selectedClass) => {
@@ -445,7 +719,9 @@ const ClassRoutinePage = ({ isAdmin = false }) => {
                         {daysList
                             .filter((dayName) => selectedDay === "সকল দিন" || selectedDay === dayName)
                             .map((dayName) => {
-                                const periods = currentClassInfo.schedule?.[dayName] || [];
+                                const periods = (currentClassInfo.schedule?.[dayName] && currentClassInfo.schedule[dayName].length > 0)
+                                    ? currentClassInfo.schedule[dayName]
+                                    : (defaultForClass.schedule?.[dayName] || []);
                                 return (
                                     <div
                                         key={dayName}
